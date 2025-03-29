@@ -1,0 +1,6 @@
+@Skibidi_HostAddress = http://localhost:5004
+
+GET {{Skibidi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
