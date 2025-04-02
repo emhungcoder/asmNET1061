@@ -1,4 +1,4 @@
-﻿namespace foodService
+﻿namespace foodService.test
 {
     public class AnTest
     {
