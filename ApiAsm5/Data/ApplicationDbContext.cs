@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using ASM5.Models; // Đảm bảo namespace đúng với các model của bạn
+using ASM.Models; // Đảm bảo namespace đúng với các model của bạn
 
-namespace ASM5.Data
+namespace ASM.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
     {

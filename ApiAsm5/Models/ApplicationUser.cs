@@ -2,7 +2,7 @@
 // File: Models/ApplicationUser.cs
 using Microsoft.AspNetCore.Identity;
 
-namespace ASM5.Models
+namespace ASM.Models
 {
     public class ApplicationUser : IdentityUser<string>
     {

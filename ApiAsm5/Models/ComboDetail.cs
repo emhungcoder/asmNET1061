@@ -1,4 +1,4 @@
-﻿namespace ASM5.Models
+﻿namespace ASM.Models
 {
     public class ComboDetail
     {

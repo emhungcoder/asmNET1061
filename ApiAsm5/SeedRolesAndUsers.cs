@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using ASM5.Models;
-using ASM5.Data;
+using ASM.Models;
+using ASM.Data;
 
 public static class SeedData
 {

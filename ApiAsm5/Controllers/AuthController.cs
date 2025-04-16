@@ -4,9 +4,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using ASM5.Models;
+using ASM.Models;
 using Newtonsoft.Json;
-namespace ASMC4.API.Controllers
+namespace ASM.API.Controllers
 {
     [Route("api/auth")]
     [ApiController]

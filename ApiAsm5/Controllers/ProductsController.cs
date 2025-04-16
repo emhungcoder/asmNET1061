@@ -1,9 +1,9 @@
-﻿using ASM5.Data;
-using ASM5.Models;
+﻿using ASM.Data;
+using ASM.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace ASMC4.API.Controllers
+namespace ASM.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

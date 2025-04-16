@@ -1,7 +1,7 @@
-﻿using ASM5.Models;
+﻿using ASM.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace ASM5.Data
+namespace ASM.Data
 {
     public class ProductRepository
     {

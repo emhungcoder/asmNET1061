@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using ASM5.Models; // ApplicationUser
+using ASM.Models;
 using System.Threading.Tasks;
 using System.Linq;
 
-namespace ASM5.API.Controllers
+namespace ASM.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

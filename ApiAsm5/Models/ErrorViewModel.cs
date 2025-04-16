@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Asm5.Models
+namespace Asm.Models
 {
     [NotMapped]
     public class ErrorViewModel
