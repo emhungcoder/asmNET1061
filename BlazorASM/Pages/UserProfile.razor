@@ -1,4 +1,4 @@
-﻿@page "/user-profile"
+﻿@page "/UserProfile"
 @inject NavigationManager Navigation
 
 @inject AuthService AuthService
@@ -108,3 +108,130 @@ else
         Navigation.NavigateTo("/login");
     }
 }
+ <style>
+
+    .menu {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+
+    .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+
+        .menu-item:hover {
+            background-color: #e9ecef;
+        }
+
+
+        .menu-item i {
+            margin-right: 10px;
+        }
+
+
+        .menu-item span {
+            font-size: 16px;
+        }
+
+    body {
+        background-color: #f0f0f0;
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+
+    .modal-background {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+    }
+
+
+    .modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: left;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+
+        .modal-content div {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+
+    button[type="submit"] {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+        display: inline-block;
+    }
+
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+    .close-btn {
+        margin-top: 20px;
+        background-color: #dc3545;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+
+        .close-btn:hover {
+            background-color: #c82333;
+        }
+
+
+    background-color: d4edda;
+    color: #155724;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #c3e6cb;
+    border-radius: 5px;
+    }
+</style>
+
+
+   

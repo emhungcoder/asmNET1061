@@ -1,5 +1,6 @@
 ﻿@page "/login"
 @inject AuthService AuthService
+
 @inject NavigationManager Navigation
 
 <h3>Đăng nhập</h3>
@@ -10,10 +11,14 @@
     <button type="submit">Đăng nhập</button>
 </EditForm>
 
+<p>
+    Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
+</p>
 @if (!string.IsNullOrEmpty(message))
 {
     <p>@message</p>
 }
+
 
 @code {
     LoginModel loginModel = new();
@@ -28,6 +33,7 @@
             // Lưu token vào local storage nếu muốn
             Navigation.NavigateTo("/");
         }
+
         else
         {
             message = "Đăng nhập thất bại!";
