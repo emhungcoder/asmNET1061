@@ -11,7 +11,16 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazorClient",
+        policy =>
+        {
+            policy.WithOrigins("https://localhost:7118") // Cổng Blazor
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -55,6 +64,7 @@ using (var scope = app.Services.CreateScope())
     await SeedData.SeedRolesAndUsers(services);
 
 }
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -63,7 +73,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseStaticFiles();
 app.UseHttpsRedirection();
-
+app.UseCors("AllowBlazorClient");
 app.UseAuthorization();
 
 app.MapControllers();

@@ -17,13 +17,15 @@ namespace ASM.Client.Services
         }
 
         public async Task<bool> RegisterAsync(RegisterModel model)
-        {
+        { Console.WriteLine("RegisterAsync called"); // Debug log
             var response = await _http.PostAsJsonAsync("api/auth/register", model);
             return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> LoginAsync(LoginModel model)
-        {
+        { 
+            
+            Console.WriteLine("LoginAsync called"); // Debug log
             var response = await _http.PostAsJsonAsync("api/auth/login", model);
             if (!response.IsSuccessStatusCode) return false;
 
@@ -34,6 +36,7 @@ namespace ASM.Client.Services
                 return true;
             }
             return false;
+
         }
 
         public async Task LogoutAsync()
@@ -43,6 +46,7 @@ namespace ASM.Client.Services
 
         public async Task<string?> GetProfileAsync()
         {
+            Console.WriteLine("GetProfileAsync called"); // Debug log
             var token = await _localStorage.GetItemAsync<string>("authToken");
             if (string.IsNullOrWhiteSpace(token)) return null;
 
@@ -55,6 +59,7 @@ namespace ASM.Client.Services
 
         public async Task<UserProfileModel?> GetUserProfileAsync()
         {
+            Console.WriteLine("GetProfileAsync called");
             var token = await _localStorage.GetItemAsync<string>("authToken");
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var result = await _http.GetFromJsonAsync<UserProfileModel>("api/auth/GetProfile");
