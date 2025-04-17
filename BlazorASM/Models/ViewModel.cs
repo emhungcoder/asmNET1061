@@ -1,7 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
-namespace ASM.Models
+namespace ASM.Client.Models
 {
     [NotMapped]
     public class ChangePasswordModel
@@ -54,25 +55,34 @@ namespace ASM.Models
     [NotMapped]
     public class RegisterModel
     {
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public string Address { get; set; }
-        public string PhoneNumber { get; set; }  // Thêm số điện thoại
-    }
-    [NotMapped]
-    public class EmployeeDto
+    public string FullName { get; set; }
+    public string Email { get; set; }
+    public string Password { get; set; }
+    public string Address { get; set; }
+    public string PhoneNumber { get; set; }
+     }
+[NotMapped]
+public class EmployeeDto
+{
+    public string? Id { get; set; }
+    public required string FullName { get; set; }
+    public string Email { get; set; }
+    public List<string>? Roles { get; set; }
+    public string? TinhTrangHoatDong { get; set; }
+    public string Address { get; set; }
+    public string PhoneNumber { get; set; }
+}
+[NotMapped]
+public class AuthResponse
+{
+    public string Token { get; set; }
+}
+    public class UserProfileModel
     {
-
-        public string? Id { get; set; }
-        public required string FullName { get; set; }
-        public string Email { get; set; }
-        public List<string>? Roles { get; set; }
-        public string? TinhTrangHoatDong { get; set; }
-        public string Address { get; set; }
-        public string PhoneNumber { get; set; }
-
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Address { get; set; } = "";
+        public string Phone { get; set; } = "";
+        public string RoleName { get; set; } = "";
     }
-
-
 }

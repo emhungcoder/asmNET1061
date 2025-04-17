@@ -1,0 +1,31 @@
+﻿@page "/register"
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<h3>Đăng ký</h3>
+
+<EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+    <InputText @bind-Value="registerModel.FullName" placeholder="Họ tên" />
+    <InputText @bind-Value="registerModel.Email" placeholder="Email" />
+    <InputText @bind-Value="registerModel.Address" placeholder="Địa chỉ" />
+    <InputText @bind-Value="registerModel.PhoneNumber" placeholder="Số điện thoại" />
+    <InputText @bind-Value="registerModel.Password" placeholder="Mật khẩu" type="password" />
+    <button type="submit">Đăng ký</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <p>@message</p>
+}
+
+@code {
+    RegisterModel registerModel = new();
+    string message = "";
+
+    async Task HandleRegister()
+    {
+        var success = await AuthService.RegisterAsync(registerModel);
+        message = success ? "Đăng ký thành công!" : "Đăng ký thất bại!";
+        if (success) Navigation.NavigateTo("/login");
+    }
+}

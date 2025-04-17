@@ -1,0 +1,110 @@
+﻿@page "/user-profile"
+@inject NavigationManager Navigation
+
+@inject AuthService AuthService
+@inject ILocalStorageService LocalStorage
+
+<h2>Quản lý Thông tin Cá nhân</h2>
+
+@if (user == null)
+{
+    <p>Đang tải dữ liệu...</p>
+}
+else
+{
+    <!-- Modal chi tiết -->
+    <div class="modal-background" style="display:@(showDetailsModal ? "flex" : "none")">
+        <div class="modal-content">
+            <h3>Thông tin chi tiết</h3>
+            <label><strong>Họ tên:</strong></label>
+            <p>@user.FullName</p>
+            <label><strong>Email:</strong></label>
+            <p>@user.Email</p>
+            <label><strong>Vai trò:</strong></label>
+            <p>@user.RoleName</p>
+            <label><strong>Địa chỉ:</strong></label>
+            <p>@user.Address</p>
+            <label><strong>Số điện thoại:</strong></label>
+            <p>@user.Phone</p>
+            <button class="close-btn" @onclick="() => showDetailsModal = false">Đóng</button>
+        </div>
+    </div>
+
+    <!-- Modal sửa -->
+    <div class="modal-background" style="display:@(showEditModal ? "flex" : "none")">
+        <div class="modal-content">
+            <EditForm Model="user" OnValidSubmit="HandleUpdateProfile">
+                <div>
+                    <label>Họ và Tên:</label>
+                    <InputText @bind-Value="user.FullName" />
+                </div>
+                <div>
+                    <label>Email:</label>
+                    <InputText @bind-Value="user.Email" />
+                </div>
+                <div>
+                    <label>Địa chỉ:</label>
+                    <InputText @bind-Value="user.Address" />
+                </div>
+                <div>
+                    <label>Số điện thoại:</label>
+                    <InputText @bind-Value="user.Phone" />
+                </div>
+                <button type="submit">Cập nhật</button>
+                <button class="close-btn" type="button" @onclick="() => showEditModal = false">Đóng</button>
+            </EditForm>
+        </div>
+    </div>
+
+    <!-- Menu chức năng -->
+    <div class="menu">
+        <div class="menu-item" @onclick="() => showDetailsModal = true">
+            <i class="fas fa-cog"></i>
+            <span>Xem chi tiết Thông tin cá nhân</span>
+        </div>
+
+        @if (user.RoleName == "Customer")
+        {
+            <div class="menu-item">
+                <i class="fas fa-history"></i>
+                <a href="/order-history" style="color: black; text-decoration: none;">Lịch sử mua hàng</a>
+            </div>
+        }
+
+        <div class="menu-item" @onclick="() => showEditModal = true">
+            <i class="fas fa-edit"></i>
+            <span>Sửa thông tin cá nhân</span>
+        </div>
+
+        <div class="menu-item">
+            <button class="close-btn" @onclick="Logout">Đăng xuất</button>
+        </div>
+    </div>
+}
+
+@code {
+    UserProfileModel? user;
+    bool showDetailsModal = false;
+    bool showEditModal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await AuthService.GetUserProfileAsync();
+    }
+
+    async Task HandleUpdateProfile()
+    {
+        var result = await AuthService.UpdateUserProfileAsync(user!);
+        if (result)
+        {
+            showEditModal = false;
+            // có thể hiển thị thông báo thành công
+        }
+    }
+
+    async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login");
+    }
+}
