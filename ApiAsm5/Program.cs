@@ -48,7 +48,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             // Cấu hình để claim "sub" được map vào NameIdentifier
             NameClaimType = JwtRegisteredClaimNames.Sub,
             RoleClaimType = "RoleName",
-              ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero
         };
     });
 
@@ -72,12 +72,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseStaticFiles();
-
-app.UseAuthentication();
-
+app.UseHttpsRedirection();
 app.UseCors("AllowBlazorClient");
-
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
