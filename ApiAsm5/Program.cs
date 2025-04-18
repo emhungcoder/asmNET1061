@@ -7,73 +7,93 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// CORS: Cho phép Blazor (https://localhost:7118) gọi đến API
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowBlazorClient",
-        policy =>
-        {
-            policy.WithOrigins("https://localhost:7118") // Cổng Blazor
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowBlazorClient", policy =>
+    {
+        policy.WithOrigins("https://localhost:7118")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
+
+// Controller + JSON config
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
         options.JsonSerializerOptions.WriteIndented = true;
     });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+// Swagger (tùy chọn)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<ProductRepository>();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-            // Cấu hình để claim "sub" được map vào NameIdentifier
-            NameClaimType = JwtRegisteredClaimNames.Sub,
-            RoleClaimType = "RoleName",
-              ClockSkew = TimeSpan.Zero
-        };
-    });
 
-// Cấu hình Identity
+// Repository custom
+builder.Services.AddScoped<ProductRepository>();
+
+// Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+// ✅ AUTH: Dùng JWT là mặc định (không phải Cookie)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+                                      Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        NameClaimType = JwtRegisteredClaimNames.Sub,
+        RoleClaimType = "RoleName",
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+
 var app = builder.Build();
+
+// Seed dữ liệu (nếu có)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     await SeedData.SeedRolesAndUsers(services);
-
 }
 
-// Configure the HTTP request pipeline.
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseStaticFiles();
 app.UseHttpsRedirection();
+
 app.UseCors("AllowBlazorClient");
+
+app.UseAuthentication();  // ✅ Phải có trước Authorization
 app.UseAuthorization();
 
 app.MapControllers();
