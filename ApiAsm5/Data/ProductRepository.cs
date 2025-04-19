@@ -19,12 +19,25 @@ namespace ASM.Data
         public async Task<List<Product>> GetAllProductsAsync()
         {
             return await _context.Products
-                .Include(p => p.Category) // Bao gồm thông tin Category
-                .ToListAsync(); // Lấy tất cả các sản phẩm
+                .Include(p => p.Category)
+                .Where(p => p.TinhTrang == "on")
+                .Select(p => new Product
+                {
+                    ProductID = p.ProductID,
+                    ProductName = p.ProductName,
+                    Price = p.Price,
+                    Quantity = p.Quantity,
+                    Color = p.Color,
+                    Size = p.Size,
+                    Image = p.Image,
+                    Description = p.Description,
+                    TinhTrang = p.TinhTrang,
+                    CategoryName = p.Category.CategoryName
+                })
+                .ToListAsync();
         }
 
-        // Lấy sản phẩm theo trạng thái
-        public async Task<IEnumerable<Product>> GetProductsByStatusAsync(string status)
+        public async Task<List<Product>> AllPro()
         {
             return await _context.Products
                 .Where(p => p.TinhTrang == status)
