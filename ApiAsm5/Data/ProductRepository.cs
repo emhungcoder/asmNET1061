@@ -16,7 +16,7 @@ namespace ASM.Data
         {
             return await _context.Products
                 .Include(p => p.Category)
-                .Where(p => p.TinhTrang == "On")
+                .Where(p => p.TinhTrang == "on")
                 .Select(p => new Product
                 {
                     ProductID = p.ProductID,
@@ -32,6 +32,7 @@ namespace ASM.Data
                 })
                 .ToListAsync();
         }
+
         public async Task<List<Product>> AllPro()
         {
             return await _context.Products

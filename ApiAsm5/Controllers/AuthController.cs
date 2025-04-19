@@ -82,7 +82,7 @@ namespace ASM.API.Controllers
     new Claim(ClaimTypes.NameIdentifier, user.Id),               
     new Claim(JwtRegisteredClaimNames.Email, user.Email),
     new Claim("FullName", user.FullName),
-    new Claim("RoleName", roleName)
+    new Claim(ClaimTypes.Role, roleName)
 };
 
 
@@ -173,6 +173,7 @@ namespace ASM.API.Controllers
         [HttpPost("changepassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
         {
+            Console.WriteLine("changePass called");
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 

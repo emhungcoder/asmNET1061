@@ -29,6 +29,27 @@ else
             <button class="close-btn" @onclick="() => showDetailsModal = false">Đóng</button>
         </div>
     </div>
+    <!-- Modal đổi mật khẩu -->
+    <div class="modal-background" style="display:@(showChangePasswordModal ? "flex" : "none")">
+        <div class="modal-content">
+            <EditForm Model="passwordModel" OnValidSubmit="HandleChangePassword">
+                <div>
+                    <label>Mật khẩu cũ:</label>
+                    <InputText type="password" @bind-Value="passwordModel.OldPassword" />
+                </div>
+                <div>
+                    <label>Mật khẩu mới:</label>
+                    <InputText type="password" @bind-Value="passwordModel.NewPassword" />
+                </div>
+                <div>
+                    <label>Xác nhận mật khẩu mới:</label>
+                    <InputText type="password" @bind-Value="passwordModel.ConfirmPassword" />
+                </div>
+                <button type="submit">Đổi mật khẩu</button>
+                <button type="button" class="close-btn" @onclick="() => showChangePasswordModal = false">Đóng</button>
+            </EditForm>
+        </div>
+    </div>
 
     <!-- Modal sửa -->
     <div class="modal-background" style="display:@(showEditModal ? "flex" : "none")">
@@ -58,6 +79,14 @@ else
 
     <!-- Menu chức năng -->
     <div class="menu">
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <div class="alert @(messageType == "success" ? "alert-success" : "alert-danger")" style="position: relative;">
+                @message
+                <button @onclick="() => message = null" class="close-alert-btn">×</button>
+            </div>
+        }
+
         <div class="menu-item" @onclick="() => showDetailsModal = true">
             <i class="fas fa-cog"></i>
             <span>Xem chi tiết Thông tin cá nhân</span>
@@ -76,6 +105,11 @@ else
             <span>Sửa thông tin cá nhân</span>
         </div>
 
+        <div class="menu-item" @onclick="() => showChangePasswordModal = true">
+            <i class="fas fa-key"></i>
+            <span>Đổi mật khẩu</span>
+        </div>
+
         <div class="menu-item">
             <button class="close-btn" @onclick="Logout">Đăng xuất</button>
         </div>
@@ -83,6 +117,16 @@ else
 }
 
 @code {
+    string? message;
+    string? messageType; 
+    // "success" or "error"
+
+
+
+    ChangePasswordModel passwordModel = new();
+    bool showChangePasswordModal = false;
+
+ 
     UserProfileModel? user;
     bool showDetailsModal = false;
     bool showEditModal = false;
@@ -91,16 +135,40 @@ else
     {
         user = await AuthService.GetUserProfileAsync();
     }
-
     async Task HandleUpdateProfile()
     {
         var result = await AuthService.UpdateUserProfileAsync(user!);
         if (result)
         {
             showEditModal = false;
-            // có thể hiển thị thông báo thành công
+            message = "Cập nhật thông tin thành công!";
+            messageType = "success";
+        }
+        else
+        {
+            message = "Cập nhật thất bại. Vui lòng thử lại.";
+            messageType = "error";
         }
     }
+
+    async Task HandleChangePassword()
+    {
+        var result = await AuthService.ChangePasswordAsync(passwordModel);
+        if (result.IsSuccess)
+        {
+            showChangePasswordModal = false;
+            message = "Đổi mật khẩu thành công!";
+            messageType = "success";
+        }
+        else
+        {
+            message = result.ErrorMessage ?? "Có lỗi xảy ra khi đổi mật khẩu.";
+            messageType = "error";
+        }
+
+        passwordModel = new(); // clear form
+    }
+
 
     async Task Logout()
     {
@@ -115,6 +183,17 @@ else
         padding: 10px;
         border-radius: 5px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .close-alert-btn {
+        position: absolute;
+        right: 10px;
+        top: 5px;
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: #333;
     }
 
 
@@ -232,6 +311,3 @@ else
     border-radius: 5px;
     }
 </style>
-
-
-   
