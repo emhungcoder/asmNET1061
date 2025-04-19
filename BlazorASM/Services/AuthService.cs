@@ -33,6 +33,7 @@ namespace ASM.Client.Services
             if (result?.Token != null)
             {
                 await _localStorage.SetItemAsync("authToken", result.Token);
+
                 return true;
             }
             return false;
@@ -44,24 +45,13 @@ namespace ASM.Client.Services
             await _localStorage.RemoveItemAsync("authToken");
         }
 
-        public async Task<string?> GetProfileAsync()
-        {
-            Console.WriteLine("GetProfileAsync called"); // Debug log
-            var token = await _localStorage.GetItemAsync<string>("authToken");
-            if (string.IsNullOrWhiteSpace(token)) return null;
-
-            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var response = await _http.GetAsync("api/auth/GetProfile");
-            if (!response.IsSuccessStatusCode) return null;
-
-            return await response.Content.ReadAsStringAsync(); // hoặc bạn có thể deserialize thành object
-        }
-
         public async Task<UserProfileModel?> GetUserProfileAsync()
         {
             Console.WriteLine("GetProfileAsync called");
             var token = await _localStorage.GetItemAsync<string>("authToken");
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            Console.WriteLine($"Authorization header: {_http.DefaultRequestHeaders.Authorization}");
+
             var result = await _http.GetFromJsonAsync<UserProfileModel>("api/auth/GetProfile");
             return result;
         }
@@ -70,6 +60,7 @@ namespace ASM.Client.Services
         {
             var token = await _localStorage.GetItemAsync<string>("authToken");
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             var response = await _http.PutAsJsonAsync("api/auth/UpdateProfile", model);
             return response.IsSuccessStatusCode;
         }

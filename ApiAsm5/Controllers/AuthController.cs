@@ -6,8 +6,10 @@ using System.Security.Claims;
 using System.Text;
 using ASM.Models;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Authorization;
 namespace ASM.API.Controllers
 {
+   
     [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -69,17 +71,20 @@ namespace ASM.API.Controllers
             var token = GenerateJwtToken(user, roleName);
             return Ok(new { token });
         }
+        
 
         private string GenerateJwtToken(ApplicationUser user, string roleName)
         {
 
             var claims = new[]
             {
-        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-        new Claim(JwtRegisteredClaimNames.Email, user.Email),
-        new Claim("FullName", user.FullName),
-        new Claim("RoleName", roleName)
-    };
+    new Claim(JwtRegisteredClaimNames.Sub, user.Id),                   
+    new Claim(ClaimTypes.NameIdentifier, user.Id),               
+    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+    new Claim("FullName", user.FullName),
+    new Claim("RoleName", roleName)
+};
+
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -96,11 +101,14 @@ namespace ASM.API.Controllers
 
 
         // Lấy thông tin cá nhân của user hiện tại
+        [Authorize]
         [HttpGet("GetProfile")]
         public async Task<IActionResult> GetProfile()
         {
             // Lấy user id từ User.Identity.Name (đã được map từ claim "sub")
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+              ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
 
             if (string.IsNullOrEmpty(userId))
             {

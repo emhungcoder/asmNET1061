@@ -26,17 +26,17 @@
 
     async Task HandleLogin()
     {
-        var token = await AuthService.LoginAsync(loginModel);
-        if (token != null)
+       
+        bool success = await AuthService.LoginAsync(loginModel);
+        if (success)
         {
             message = "Đăng nhập thành công!";
-            // Lưu token vào local storage nếu muốn
             Navigation.NavigateTo("/");
         }
-
         else
         {
             message = "Đăng nhập thất bại!";
         }
+
     }
 }
