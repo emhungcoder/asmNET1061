@@ -37,13 +37,14 @@ namespace ASM.Data
                 .ToListAsync();
         }
 
-        public async Task<List<Product>> AllPro()
+        public async Task<List<Product>> AllPro(string status) // Thêm tham số status
         {
             return await _context.Products
-                .Where(p => p.TinhTrang == status)
+                .Where(p => p.TinhTrang == status) // Dùng tham số status
                 .Include(p => p.Category)
                 .ToListAsync(); // Lấy sản phẩm theo trạng thái On hoặc Off
         }
+
 
         // Tìm kiếm sản phẩm theo các điều kiện
         public async Task<List<Product>> SearchProductsAsync(string? searchTerm, int? categoryId, decimal? minPrice, decimal? maxPrice)
@@ -66,6 +67,14 @@ namespace ASM.Data
                 query = query.Where(p => p.Price <= maxPrice.Value);
 
             return await query.Where(p => p.TinhTrang == "On").ToListAsync(); // Trạng thái "On" để hiển thị sản phẩm đang bán
+        }
+
+        public async Task<List<Product>> GetProductsByStatusAsync(string status)
+        {
+            return await _context.Products
+                .Where(p => p.TinhTrang == status)
+                .Include(p => p.Category)
+                .ToListAsync();
         }
 
         // Thêm sản phẩm mới

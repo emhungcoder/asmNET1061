@@ -17,11 +17,16 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.15" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.6.0" />
+	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.8.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.8.0" />    
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="wwwroot\Image\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BlazorASM\BlazorASM.csproj" />
   </ItemGroup>
 
 </Project>
