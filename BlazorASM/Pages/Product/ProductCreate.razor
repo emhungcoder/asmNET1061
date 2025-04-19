@@ -10,13 +10,13 @@
     </div>
     <div class="mb-3">
         <InputNumber class="form-control"
-                     @bind-Value="product.Price"
-                     @attributes="@(new Dictionary<string, object> { ["placeholder"] = "Giá" })" />
+        @bind-Value="product.Price"
+        @attributes="@(new Dictionary<string, object> { ["placeholder"] = "Giá" })" />
     </div>
     <div class="mb-3">
         <InputNumber class="form-control"
-                     @bind-Value="product.Quantity"
-                     @attributes="@(new Dictionary<string, object> { ["placeholder"] = "Số lượng" })" />
+        @bind-Value="product.Quantity"
+        @attributes="@(new Dictionary<string, object> { ["placeholder"] = "Số lượng" })" />
     </div>
     <div class="mb-3">
         <InputText class="form-control" @bind-Value="product.Color" placeholder="Màu sắc" />
@@ -45,23 +45,23 @@
     private async Task HandleValidSubmit()
     {
         if (file == null) return;
-
+        Console.WriteLine("HandleValidSubmit called");
         // Cho phép tối đa 2MB
         var stream = file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024);
 
         var formData = new MultipartFormDataContent
-        {
-            { new StringContent(product.ProductName ?? ""), "ProductName" },
-            { new StringContent(product.Price.ToString()), "Price" },
-            { new StringContent(product.Quantity.ToString()), "Quantity" },
-            { new StringContent(product.Color ?? ""), "Color" },
-            { new StringContent(product.Size ?? ""), "Size" },
-            { new StringContent(product.Description ?? ""), "Description" },
-            { new StringContent("1"), "CategoryID" }, // bạn có thể thay bằng dropdown sau
-            { new StreamContent(stream), "ProductImage", file.Name }
-        };
+{
+    { new StringContent(product.ProductName ?? ""), "ProductName" },
+    { new StringContent(product.Price.ToString()), "Price" },
+    { new StringContent(product.Quantity.ToString()), "Quantity" },
+    { new StringContent(product.Color ?? ""), "Color" },
+    { new StringContent(product.Size ?? ""), "Size" },
+    { new StringContent(product.Description ?? ""), "Description" },
+    { new StringContent("1"), "CategoryID" },
+    { new StreamContent(stream), "ProductImage", file.Name }
+};
 
         await ProductService.AddAsync(product, formData);
-        Nav.NavigateTo("/products");
+        Nav.NavigateTo("/ProductManeger");
     }
 }

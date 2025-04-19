@@ -32,23 +32,10 @@ namespace ASM.Client.Services
 
         public async Task AddAsync(Product product, MultipartFormDataContent formData)
         {
-            var content = new MultipartFormDataContent();
-            content.Add(new StringContent(product.ProductName), "ProductName");
-            content.Add(new StringContent(product.Price.ToString()), "Price");
-            content.Add(new StringContent(product.Quantity.ToString()), "Quantity");
-            content.Add(new StringContent(product.Color), "Color");
-            content.Add(new StringContent(product.Size), "Size");
-            content.Add(new StringContent(product.Description), "Description");
-            content.Add(new StringContent(product.CategoryID.ToString()), "CategoryID");
-
-            if (formData != null)
-            {
-                content.Add(formData, "ProductImage", formData.Headers.ContentDisposition.FileName);
-            }
-
-            var response = await _httpClient.PostAsync("api/products", content);
+            var response = await _httpClient.PostAsync("api/products", formData);
             response.EnsureSuccessStatusCode();
         }
+
 
         public async Task UpdateAsync(Product product, MultipartFormDataContent formData)
         {
