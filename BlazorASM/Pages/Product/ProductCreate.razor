@@ -1,0 +1,67 @@
+﻿@page "/products/create"
+@inject IProductService ProductService
+@inject NavigationManager Nav
+
+<h3>Thêm sản phẩm</h3>
+
+<EditForm Model="@product" OnValidSubmit="@HandleValidSubmit">
+    <div class="mb-3">
+        <InputText class="form-control" @bind-Value="product.ProductName" placeholder="Tên sản phẩm" />
+    </div>
+    <div class="mb-3">
+        <InputNumber class="form-control"
+                     @bind-Value="product.Price"
+                     @attributes="@(new Dictionary<string, object> { ["placeholder"] = "Giá" })" />
+    </div>
+    <div class="mb-3">
+        <InputNumber class="form-control"
+                     @bind-Value="product.Quantity"
+                     @attributes="@(new Dictionary<string, object> { ["placeholder"] = "Số lượng" })" />
+    </div>
+    <div class="mb-3">
+        <InputText class="form-control" @bind-Value="product.Color" placeholder="Màu sắc" />
+    </div>
+    <div class="mb-3">
+        <InputText class="form-control" @bind-Value="product.Size" placeholder="Kích thước" />
+    </div>
+    <div class="mb-3">
+        <InputText class="form-control" @bind-Value="product.Description" placeholder="Mô tả" />
+    </div>
+    <div class="mb-3">
+        <InputFile OnChange="OnInputFileChange" />
+    </div>
+    <button class="btn btn-success">Thêm</button>
+</EditForm>
+
+@code {
+    private Product product = new();
+    private IBrowserFile? file;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (file == null) return;
+
+        // Cho phép tối đa 2MB
+        var stream = file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024);
+
+        var formData = new MultipartFormDataContent
+        {
+            { new StringContent(product.ProductName ?? ""), "ProductName" },
+            { new StringContent(product.Price.ToString()), "Price" },
+            { new StringContent(product.Quantity.ToString()), "Quantity" },
+            { new StringContent(product.Color ?? ""), "Color" },
+            { new StringContent(product.Size ?? ""), "Size" },
+            { new StringContent(product.Description ?? ""), "Description" },
+            { new StringContent("1"), "CategoryID" }, // bạn có thể thay bằng dropdown sau
+            { new StreamContent(stream), "ProductImage", file.Name }
+        };
+
+        await ProductService.AddAsync(product, formData);
+        Nav.NavigateTo("/products");
+    }
+}

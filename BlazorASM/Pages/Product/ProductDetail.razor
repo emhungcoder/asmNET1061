@@ -1,0 +1,39 @@
+﻿@page "/products/details/{id:int}"
+@inject IProductService ProductService
+
+<h3>Chi tiết sản phẩm</h3>
+
+@if (product == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-2">Tên:</dt>
+        <dd class="col-sm-10">@product.ProductName</dd>
+
+        <dt class="col-sm-2">Giá:</dt>
+        <dd class="col-sm-10">@product.Price</dd>
+
+        <dt class="col-sm-2">Số lượng:</dt>
+        <dd class="col-sm-10">@product.Quantity</dd>
+
+        <dt class="col-sm-2">Hình ảnh:</dt>
+        <dd class="col-sm-10"><img src="@product.Image" width="200" /></dd>
+
+        <dt class="col-sm-2">Trạng thái:</dt>
+        <dd class="col-sm-10">@product.TinhTrang</dd>
+    </dl>
+    <a class="btn btn-secondary" href="/products">Quay lại</a>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    private Product? product;
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await ProductService.GetByIdAsync(id);
+    }
+}

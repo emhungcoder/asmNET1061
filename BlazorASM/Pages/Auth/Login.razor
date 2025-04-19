@@ -26,17 +26,16 @@
 
     async Task HandleLogin()
     {
-       
         bool success = await AuthService.LoginAsync(loginModel);
         if (success)
         {
             message = "Đăng nhập thành công!";
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo("/products"); 
         }
         else
         {
             message = "Đăng nhập thất bại!";
         }
-
     }
+
 }

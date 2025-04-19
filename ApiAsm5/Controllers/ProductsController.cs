@@ -1,7 +1,11 @@
-﻿using ASM.Data;
-using ASM.Models;
+﻿using ASM.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using ASM.Data;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using apiASM.Models;
 
 namespace ASM.API.Controllers
 {
@@ -11,57 +15,86 @@ namespace ASM.API.Controllers
     {
         private readonly ProductRepository _productRepository;
         private readonly IWebHostEnvironment _env;
+
         public ProductsController(ProductRepository productRepository, IWebHostEnvironment env)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
             _env = env;
         }
-        // Lấy danh sách sản phẩm
+
+        // Chuyển đổi đối tượng Product thành ProductDTO
+        private ProductDTO MapToDTO(Product p) => new ProductDTO
+        {
+            ProductID = p.ProductID,
+            ProductName = p.ProductName,
+            Price = p.Price,
+            Quantity = p.Quantity,
+            Color = p.Color,
+            Size = p.Size,
+            Description = p.Description,
+            Image = p.Image,
+            CategoryID = p.CategoryID,
+            CategoryName = p.Category?.CategoryName,
+            TinhTrang = p.TinhTrang
+        };
+
+        // Lấy tất cả sản phẩm
         [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
             var products = await _productRepository.GetAllProductsAsync();
-            return Ok(products);
+            var result = products.Select(MapToDTO).ToList();
+            return Ok(result);
         }
-        [HttpGet("AllPro")]
 
-        public async Task<IActionResult> GetAllProductsAll()
+        // Lấy sản phẩm đã ngừng bán
+        [HttpGet("GetInactiveProducts")]
+        public async Task<IActionResult> GetInactiveProducts()
         {
-            var products = await _productRepository.AllPro();
-            return Ok(products);
+            var products = await _productRepository.GetProductsByStatusAsync("Off");
+            var result = products.Select(MapToDTO).ToList();
+            return Ok(result);
         }
 
-        // Tìm kiếm sản phẩm theo tên
-        [HttpGet("SearchProducts")]
-        public async Task<IActionResult> Search(string searchTerm)
+        // Tìm kiếm sản phẩm
+        [HttpGet("Search")]
+        public async Task<IActionResult> SearchProducts(string? searchTerm, int? categoryId, decimal? minPrice, decimal? maxPrice)
         {
-            var products = await _productRepository.SearchProductsAsync(searchTerm);
-            return Ok(products);
+            var products = await _productRepository.SearchProductsAsync(searchTerm, categoryId, minPrice, maxPrice);
+            var result = products.Select(MapToDTO).ToList();
+            return Ok(result);
         }
 
-        // Thêm sản phẩm mới (dữ liệu gửi dưới dạng multipart/form-data)
+        // Lấy sản phẩm theo ID
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetProductById(int id)
+        {
+            var product = await _productRepository.GetProductByIdAsync(id);
+            if (product == null) return NotFound("Sản phẩm không tồn tại.");
+            return Ok(MapToDTO(product));
+        }
+
+        // Thêm sản phẩm
         [HttpPost]
         public async Task<IActionResult> AddProduct([FromForm] ProductCreateModel model)
         {
             if (model.ProductImage == null || model.ProductImage.Length == 0)
                 return BadRequest(new { message = "Vui lòng chọn ảnh." });
 
-            // Lấy đường dẫn webRoot
             var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var imagesFolder = Path.Combine(webRoot, "images");
 
-            // Tạo thư mục images nếu chưa tồn tại
             if (!Directory.Exists(imagesFolder))
             {
                 Directory.CreateDirectory(imagesFolder);
             }
+
             var fileName = Path.GetFileName(model.ProductImage.FileName);
-            var filePath = Path.Combine(webRoot, "images", fileName);
+            var filePath = Path.Combine(imagesFolder, fileName);
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await model.ProductImage.CopyToAsync(stream);
             }
-
 
             var newProduct = new Product
             {
@@ -72,7 +105,7 @@ namespace ASM.API.Controllers
                 Size = model.Size,
                 Description = model.Description,
                 Image = "/images/" + fileName,
-                TinhTrang = "On",
+                TinhTrang = "On", // Trạng thái mặc định là đang bán
                 CategoryID = model.CategoryID
             };
 
@@ -110,37 +143,34 @@ namespace ASM.API.Controllers
             return Ok(new { message = "Cập nhật sản phẩm thành công!" });
         }
 
-        // Thay đổi trạng thái sản phẩm (Ngừng bán)
-        [HttpPost("stop")]
-        public async Task<IActionResult> StopSelling([FromForm] int ProductID)
+        [HttpPost("stop/{id}")]
+        public async Task<IActionResult> StopSelling(int id)
         {
-            await _productRepository.UpdateProductStatusAsync(ProductID, "Off");
+            var product = await _productRepository.GetProductByIdAsync(id);
+            if (product == null)
+                return NotFound(new { message = "Sản phẩm không tồn tại!" });
+
+            product.TinhTrang = "Off";
+            await _productRepository.UpdateProductAsync(product);
+
             return Ok(new { message = "Sản phẩm đã được ngừng bán!" });
         }
 
-        // Thay đổi trạng thái sản phẩm (Kích hoạt lại)
-        [HttpPost("activate")]
-        public async Task<IActionResult> Activate([FromForm] int ProductID)
-        {
-            await _productRepository.UpdateProductStatusAsync(ProductID, "On");
-            return Ok(new { message = "Sản phẩm đã được kích hoạt lại!" });
-        }
- 
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetProductById(int id)
+        // Kích hoạt lại sản phẩm
+        [HttpPost("activate/{id}")]
+        public async Task<IActionResult> Activate(int id)
         {
             var product = await _productRepository.GetProductByIdAsync(id);
-            if (product == null) return NotFound("Sản phẩm không tồn tại.");
-            return Ok(product);
+            if (product == null)
+                return NotFound(new { message = "Sản phẩm không tồn tại!" });
+
+            product.TinhTrang = "On";
+            await _productRepository.UpdateProductAsync(product);
+
+            return Ok(new { message = "Sản phẩm đã được kích hoạt lại!" });
         }
 
-        [HttpGet("Search")]
-        public async Task<IActionResult> SearchProducts(string? searchTerm, int? categoryId, decimal? minPrice, decimal? maxPrice)
-        {
-            var products = await _productRepository.SearchProductsAsync(searchTerm, categoryId, minPrice, maxPrice);
-         
-            return Ok(products);
-        }
+
+
     }
 }

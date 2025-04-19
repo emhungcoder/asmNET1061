@@ -1,50 +1,95 @@
-﻿using System.Net.Http.Json;
-using ASM.Client.Models;
+﻿using ASM.Client.Models;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+
 namespace ASM.Client.Services
 {
-    public class ProductService
+    public class ProductService : IProductService
     {
-        private readonly HttpClient _http;
+        private readonly HttpClient _httpClient;
 
-        public ProductService(HttpClient http)
+        public ProductService(HttpClient httpClient)
         {
-            _http = http;
+            _httpClient = httpClient;
+        }
+        public async Task<List<Product>> GetInactiveProductsAsync()
+        {
+            var response = await _httpClient.GetFromJsonAsync<List<Product>>("api/products/GetInactiveProducts");
+            return response ?? new List<Product>();
         }
 
-        public async Task<List<Product>> GetAllProducts()
+        public async Task<List<Product>> GetAllAsync()
         {
-            var products = await _http.GetFromJsonAsync<List<Product>>("api/Products");
-            return products ?? new List<Product>();
+            var response = await _httpClient.GetFromJsonAsync<List<Product>>("api/products");
+            return response ?? new List<Product>();
         }
 
-        public async Task<Product?> GetById(int id)
+        public async Task<Product?> GetByIdAsync(int id)
         {
-            return await _http.GetFromJsonAsync<Product>($"api/Products/{id}");
+            var response = await _httpClient.GetFromJsonAsync<Product>($"api/products/{id}");
+            return response;
         }
 
-        public async Task<HttpResponseMessage> AddProduct(MultipartFormDataContent formData)
-        {
-            return await _http.PostAsync("api/Products", formData);
-        }
-
-        public async Task<HttpResponseMessage> UpdateProduct(MultipartFormDataContent formData)
-        {
-            return await _http.PutAsync("api/Products", formData);
-        }
-
-        public async Task<HttpResponseMessage> StopSelling(int productId)
+        public async Task AddAsync(Product product, MultipartFormDataContent formData)
         {
             var content = new MultipartFormDataContent();
-            content.Add(new StringContent(productId.ToString()), "ProductID");
-            return await _http.PostAsync("api/Products/stop", content);
+            content.Add(new StringContent(product.ProductName), "ProductName");
+            content.Add(new StringContent(product.Price.ToString()), "Price");
+            content.Add(new StringContent(product.Quantity.ToString()), "Quantity");
+            content.Add(new StringContent(product.Color), "Color");
+            content.Add(new StringContent(product.Size), "Size");
+            content.Add(new StringContent(product.Description), "Description");
+            content.Add(new StringContent(product.CategoryID.ToString()), "CategoryID");
+
+            if (formData != null)
+            {
+                content.Add(formData, "ProductImage", formData.Headers.ContentDisposition.FileName);
+            }
+
+            var response = await _httpClient.PostAsync("api/products", content);
+            response.EnsureSuccessStatusCode();
         }
 
-        public async Task<HttpResponseMessage> Activate(int productId)
+        public async Task UpdateAsync(Product product, MultipartFormDataContent formData)
         {
             var content = new MultipartFormDataContent();
-            content.Add(new StringContent(productId.ToString()), "ProductID");
-            return await _http.PostAsync("api/Products/activate", content);
+            content.Add(new StringContent(product.ProductName), "ProductName");
+            content.Add(new StringContent(product.Price.ToString()), "Price");
+            content.Add(new StringContent(product.Quantity.ToString()), "Quantity");
+            content.Add(new StringContent(product.Color), "Color");
+            content.Add(new StringContent(product.Size), "Size");
+            content.Add(new StringContent(product.Description), "Description");
+            content.Add(new StringContent(product.CategoryID.ToString()), "CategoryID");
+
+            if (formData != null)
+            {
+                content.Add(formData, "ProductImage", formData.Headers.ContentDisposition.FileName);
+            }
+
+            var response = await _httpClient.PutAsync("api/products", content);
+            response.EnsureSuccessStatusCode();
+        }
+
+        public async Task StopSellingAsync(int id)
+        {
+            var response = await _httpClient.PostAsync($"api/products/stop/{id}", null);
+            response.EnsureSuccessStatusCode();
+        }
+
+
+        public async Task ActivateAsync(int id)
+        {
+            var response = await _httpClient.PostAsync($"api/products/activate/{id}", null);
+            response.EnsureSuccessStatusCode();
+        }
+
+
+
+        public async Task<List<Product>> SearchAsync(string? searchTerm, int? categoryId, decimal? minPrice, decimal? maxPrice)
+        {
+            var queryString = $"?searchTerm={searchTerm}&categoryId={categoryId}&minPrice={minPrice}&maxPrice={maxPrice}";
+            var response = await _httpClient.GetFromJsonAsync<List<Product>>($"api/products/Search{queryString}");
+            return response ?? new List<Product>();
         }
     }
-
 }

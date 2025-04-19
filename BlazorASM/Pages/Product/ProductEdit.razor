@@ -1,0 +1,62 @@
+﻿@page "/products/edit/{id:int}"
+@inject IProductService ProductService
+@inject NavigationManager Nav
+
+<h3>Sửa sản phẩm</h3>
+
+@if (product == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <EditForm Model="@product" OnValidSubmit="HandleValidSubmit">
+        <InputText class="form-control" @bind-Value="product.ProductName" />
+        <InputNumber class="form-control" @bind-Value="product.Price" />
+        <InputNumber class="form-control" @bind-Value="product.Quantity" />
+        <InputText class="form-control" @bind-Value="product.Color" />
+        <InputText class="form-control" @bind-Value="product.Size" />
+        <InputText class="form-control" @bind-Value="product.Description" />
+        <InputFile OnChange="OnInputFileChange" />
+        <button class="btn btn-primary">Lưu</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    private Product? product;
+    private IBrowserFile? file;
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await ProductService.GetByIdAsync(id);
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (product == null) return;
+
+        var formData = new MultipartFormDataContent();
+        formData.Add(new StringContent(product.ProductID.ToString()), "ProductID");
+        formData.Add(new StringContent(product.ProductName ?? ""), "ProductName");
+        formData.Add(new StringContent(product.Price.ToString()), "Price");
+        formData.Add(new StringContent(product.Quantity.ToString()), "Quantity");
+        formData.Add(new StringContent(product.Color ?? ""), "Color");
+        formData.Add(new StringContent(product.Size ?? ""), "Size");
+        formData.Add(new StringContent(product.Description ?? ""), "Description");
+        formData.Add(new StringContent(product.CategoryID.ToString()), "CategoryID");
+
+        if (file != null)
+        {
+            formData.Add(new StreamContent(file.OpenReadStream()), "ProductImage", file.Name);
+        }
+
+        await ProductService.UpdateAsync(product, formData);
+        Nav.NavigateTo("/products");
+    }
+}

@@ -1,0 +1,105 @@
+﻿@page "/products"
+@inject IProductService ProductService
+
+<h3>Danh sách sản phẩm</h3>
+
+<a class="btn btn-success mb-3" href="/products/create">➕ Thêm mới</a>
+
+@if (products == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <h4>Sản phẩm đang bán</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Tên</th>
+                <th>Giá</th>
+                <th>Số lượng</th>
+                <th>Hình ảnh</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in products.Where(p => p.TinhTrang == "On"))
+            {
+                <tr>
+                    <td>@p.ProductName</td>
+                    <td>@p.Price.ToString("N0") đ</td>
+                    <td>@p.Quantity</td>
+                    <td>
+                        <img src="@p.Image" width="100" />
+                    </td>
+                    <td>@p.TinhTrang</td>
+                    <td>
+                        <a class="btn btn-sm btn-info me-1" href="/products/details/@p.ProductID">Chi tiết</a>
+                        <a class="btn btn-sm btn-primary me-1" href="/products/edit/@p.ProductID">Sửa</a>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Stop(p.ProductID)">Ngừng bán</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4>Sản phẩm ngừng bán</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Tên</th>
+                <th>Giá</th>
+                <th>Số lượng</th>
+                <th>Hình ảnh</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in products.Where(p => p.TinhTrang == "Off"))
+            {
+                <tr>
+                    <td>@p.ProductName</td>
+                    <td>@p.Price.ToString("N0") đ</td>
+                    <td>@p.Quantity</td>
+                    <td>
+                        <img src="@p.Image" width="100" />
+                    </td>
+                    <td>@p.TinhTrang</td>
+                    <td>
+                        <a class="btn btn-sm btn-info me-1" href="/products/details/@p.ProductID">Chi tiết</a>
+                        <a class="btn btn-sm btn-primary me-1" href="/products/edit/@p.ProductID">Sửa</a>
+                        <button class="btn btn-sm btn-success" @onclick="() => Activate(p.ProductID)">Kích hoạt</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Product>? products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        products = await ProductService.GetAllAsync();
+    }
+
+    private async Task Stop(int id)
+    {
+        await ProductService.StopSellingAsync(id); // Gọi phương thức StopSellingAsync
+        await LoadProducts(); // Tải lại danh sách sản phẩm
+    }
+
+    private async Task Activate(int id)
+    {
+        await ProductService.ActivateAsync(id); // Gọi phương thức ActivateAsync
+        await LoadProducts(); // Tải lại danh sách sản phẩm
+    }
+}
