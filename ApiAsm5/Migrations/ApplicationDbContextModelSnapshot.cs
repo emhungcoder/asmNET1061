@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ApiAsm5.Migrations
+namespace apiASM.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -22,7 +22,7 @@ namespace ApiAsm5.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ASM5.Models.ApplicationUser", b =>
+            modelBuilder.Entity("ASM.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -99,7 +99,7 @@ namespace ApiAsm5.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("ASM5.Models.Cart", b =>
+            modelBuilder.Entity("ASM.Models.Cart", b =>
                 {
                     b.Property<int>("CartId")
                         .ValueGeneratedOnAdd()
@@ -120,7 +120,7 @@ namespace ApiAsm5.Migrations
                     b.ToTable("Carts");
                 });
 
-            modelBuilder.Entity("ASM5.Models.CartDetail", b =>
+            modelBuilder.Entity("ASM.Models.CartDetail", b =>
                 {
                     b.Property<int>("CartDetailId")
                         .ValueGeneratedOnAdd()
@@ -154,7 +154,7 @@ namespace ApiAsm5.Migrations
                     b.ToTable("CartDetails");
                 });
 
-            modelBuilder.Entity("ASM5.Models.Category", b =>
+            modelBuilder.Entity("ASM.Models.Category", b =>
                 {
                     b.Property<int>("CategoryID")
                         .ValueGeneratedOnAdd()
@@ -171,7 +171,7 @@ namespace ApiAsm5.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("ASM5.Models.Combo", b =>
+            modelBuilder.Entity("ASM.Models.Combo", b =>
                 {
                     b.Property<int>("ComboId")
                         .ValueGeneratedOnAdd()
@@ -194,7 +194,7 @@ namespace ApiAsm5.Migrations
                     b.ToTable("Combos");
                 });
 
-            modelBuilder.Entity("ASM5.Models.ComboDetail", b =>
+            modelBuilder.Entity("ASM.Models.ComboDetail", b =>
                 {
                     b.Property<int>("ComboDetailId")
                         .ValueGeneratedOnAdd()
@@ -220,7 +220,7 @@ namespace ApiAsm5.Migrations
                     b.ToTable("ComboDetails");
                 });
 
-            modelBuilder.Entity("ASM5.Models.Order", b =>
+            modelBuilder.Entity("ASM.Models.Order", b =>
                 {
                     b.Property<int>("OrderId")
                         .ValueGeneratedOnAdd()
@@ -248,7 +248,7 @@ namespace ApiAsm5.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("ASM5.Models.OrderDetail", b =>
+            modelBuilder.Entity("ASM.Models.OrderDetail", b =>
                 {
                     b.Property<int>("OrderDetailId")
                         .ValueGeneratedOnAdd()
@@ -277,7 +277,7 @@ namespace ApiAsm5.Migrations
                     b.ToTable("OrderDetails");
                 });
 
-            modelBuilder.Entity("ASM5.Models.Product", b =>
+            modelBuilder.Entity("ASM.Models.Product", b =>
                 {
                     b.Property<int>("ProductID")
                         .ValueGeneratedOnAdd()
@@ -453,29 +453,29 @@ namespace ApiAsm5.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ASM5.Models.Cart", b =>
+            modelBuilder.Entity("ASM.Models.Cart", b =>
                 {
-                    b.HasOne("ASM5.Models.ApplicationUser", "Customer")
+                    b.HasOne("ASM.Models.ApplicationUser", "Customer")
                         .WithMany("Carts")
                         .HasForeignKey("CustomerId");
 
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("ASM5.Models.CartDetail", b =>
+            modelBuilder.Entity("ASM.Models.CartDetail", b =>
                 {
-                    b.HasOne("ASM5.Models.Cart", "Cart")
+                    b.HasOne("ASM.Models.Cart", "Cart")
                         .WithMany("CartDetails")
                         .HasForeignKey("CartId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ASM5.Models.Combo", "Combo")
+                    b.HasOne("ASM.Models.Combo", "Combo")
                         .WithMany()
                         .HasForeignKey("ComboId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("ASM5.Models.Product", "Product")
+                    b.HasOne("ASM.Models.Product", "Product")
                         .WithMany("CartDetails")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -487,15 +487,15 @@ namespace ApiAsm5.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ASM5.Models.ComboDetail", b =>
+            modelBuilder.Entity("ASM.Models.ComboDetail", b =>
                 {
-                    b.HasOne("ASM5.Models.Combo", "Combo")
+                    b.HasOne("ASM.Models.Combo", "Combo")
                         .WithMany("ComboDetails")
                         .HasForeignKey("ComboId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ASM5.Models.Product", "Product")
+                    b.HasOne("ASM.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -506,22 +506,22 @@ namespace ApiAsm5.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ASM5.Models.Order", b =>
+            modelBuilder.Entity("ASM.Models.Order", b =>
                 {
-                    b.HasOne("ASM5.Models.ApplicationUser", "Customer")
+                    b.HasOne("ASM.Models.ApplicationUser", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId");
 
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("ASM5.Models.OrderDetail", b =>
+            modelBuilder.Entity("ASM.Models.OrderDetail", b =>
                 {
-                    b.HasOne("ASM5.Models.Order", "Order")
+                    b.HasOne("ASM.Models.Order", "Order")
                         .WithMany("OrderDetails")
                         .HasForeignKey("OrderId");
 
-                    b.HasOne("ASM5.Models.Product", "Product")
+                    b.HasOne("ASM.Models.Product", "Product")
                         .WithMany("OrderDetails")
                         .HasForeignKey("ProductId");
 
@@ -530,9 +530,9 @@ namespace ApiAsm5.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ASM5.Models.Product", b =>
+            modelBuilder.Entity("ASM.Models.Product", b =>
                 {
-                    b.HasOne("ASM5.Models.Category", "Category")
+                    b.HasOne("ASM.Models.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryID");
 
@@ -550,7 +550,7 @@ namespace ApiAsm5.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("ASM5.Models.ApplicationUser", null)
+                    b.HasOne("ASM.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -559,7 +559,7 @@ namespace ApiAsm5.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("ASM5.Models.ApplicationUser", null)
+                    b.HasOne("ASM.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -574,7 +574,7 @@ namespace ApiAsm5.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ASM5.Models.ApplicationUser", null)
+                    b.HasOne("ASM.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -583,41 +583,41 @@ namespace ApiAsm5.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("ASM5.Models.ApplicationUser", null)
+                    b.HasOne("ASM.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ASM5.Models.ApplicationUser", b =>
+            modelBuilder.Entity("ASM.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Carts");
 
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("ASM5.Models.Cart", b =>
+            modelBuilder.Entity("ASM.Models.Cart", b =>
                 {
                     b.Navigation("CartDetails");
                 });
 
-            modelBuilder.Entity("ASM5.Models.Category", b =>
+            modelBuilder.Entity("ASM.Models.Category", b =>
                 {
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("ASM5.Models.Combo", b =>
+            modelBuilder.Entity("ASM.Models.Combo", b =>
                 {
                     b.Navigation("ComboDetails");
                 });
 
-            modelBuilder.Entity("ASM5.Models.Order", b =>
+            modelBuilder.Entity("ASM.Models.Order", b =>
                 {
                     b.Navigation("OrderDetails");
                 });
 
-            modelBuilder.Entity("ASM5.Models.Product", b =>
+            modelBuilder.Entity("ASM.Models.Product", b =>
                 {
                     b.Navigation("CartDetails");
 

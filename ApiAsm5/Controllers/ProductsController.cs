@@ -6,9 +6,12 @@ using System.IO;
 using System.Linq;
 using apiASM.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ASM.API.Controllers
 {
+   
+
     [Route("api/[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase
@@ -50,6 +53,7 @@ namespace ASM.API.Controllers
         }
 
         // Lấy sản phẩm đã ngừng bán
+        [Authorize(Roles = "Manager, Employee")]
         [HttpGet("GetInactiveProducts")]
         public async Task<IActionResult> GetInactiveProducts()
         {
@@ -142,6 +146,7 @@ namespace ASM.API.Controllers
         }
 
         // Cập nhật sản phẩm
+        [Authorize(Roles = "Manager, Employee")]
         [HttpPut]
         public async Task<IActionResult> UpdateProduct([FromForm] ProductUpdateModel model)
         {
@@ -172,6 +177,7 @@ namespace ASM.API.Controllers
         }
 
         // Ngừng bán sản phẩm
+        [Authorize(Roles = "Manager, Employee")]
         [HttpPost("stop/{id}")]
         public async Task<IActionResult> StopSelling(int id)
         {
@@ -186,6 +192,7 @@ namespace ASM.API.Controllers
         }
 
         // Kích hoạt lại sản phẩm
+        [Authorize(Roles = "Manager, Employee")]
         [HttpPost("activate/{id}")]
         public async Task<IActionResult> Activate(int id)
         {
@@ -204,7 +211,7 @@ namespace ASM.API.Controllers
         public IActionResult GetAllProduct()
         {
             var products = _context.Products
-                .Where(p => p.TinhTrang == "On")
+                .Where(p => p.TinhTrang == "on")
                 .Select(p => new
                 {
                     p.ProductID,

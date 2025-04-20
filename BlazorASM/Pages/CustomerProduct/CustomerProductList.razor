@@ -47,7 +47,8 @@
                     <div class="card h-100 shadow-sm">
                         @if (!string.IsNullOrEmpty(product.Image))
                         {
-                            <img src="@product.Image" class="card-img-top" style="height:200px; object-fit:cover" />
+                            <img src=@($"https://localhost:7032/{product.Image}") class="card-img-top" style="height:200px; object-fit:cover" />
+                           
                         }
                         else
                         {
@@ -67,7 +68,23 @@
         <!-- Phân trang -->
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center mt-4">
-                <!-- Pagination logic -->
+                @if (totalPages > 0)
+                {
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(currentPage - 1)">«</button>
+                    </li>
+
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(i)">@i</button>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(currentPage + 1)">»</button>
+                    </li>
+                }
             </ul>
         </nav>
     }
@@ -78,13 +95,12 @@
     <p>&copy; 2025 BlazorASM. Tất cả quyền được bảo lưu.</p>
 </footer>
 
-<!-- Code section -->
 @code {
     List<ProductDto> products = new();
     List<ProductDto> pagedProducts = new();
 
     int currentPage = 1;
-    int pageSize = 4;
+    int pageSize = 8;
     int totalPages = 1;
 
     private bool collapseNavMenu = true;
@@ -95,12 +111,8 @@
     {
         try
         {
-            var token = await LocalStorage.GetItemAsync<string>("authToken");
-            if (string.IsNullOrEmpty(token)) return;
-
-            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            var result = await Http.GetFromJsonAsync<List<ProductDto>>("api/products");
+            // KHÔNG cần token nếu API cho phép truy cập công khai
+            var result = await Http.GetFromJsonAsync<List<ProductDto>>("api/products/get-all");
             products = result ?? new();
             totalPages = (int)Math.Ceiling(products.Count / (double)pageSize);
             UpdatePagedProducts();
@@ -110,6 +122,7 @@
             Console.WriteLine("Lỗi khi load danh sách sản phẩm: " + ex.Message);
         }
     }
+
 
     void UpdatePagedProducts()
     {

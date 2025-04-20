@@ -3,6 +3,7 @@ using ASM.Models;
 using apiASM.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ASM.API.Controllers
 {
@@ -48,6 +49,7 @@ namespace ASM.API.Controllers
         }
 
         // Thêm danh mục
+        [Authorize(Roles = "Employee,Manager")]
         [HttpPost]
         public async Task<IActionResult> CreateCategory([FromBody] CategoryDTO model)
         {
@@ -63,6 +65,7 @@ namespace ASM.API.Controllers
         }
 
         // Cập nhật danh mục
+        [Authorize(Roles = "Employee,Manager")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryDTO model)
         {
@@ -77,6 +80,7 @@ namespace ASM.API.Controllers
         }
 
         // Xoá danh mục
+        [Authorize(Roles = "Employee,Manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
