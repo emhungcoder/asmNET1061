@@ -1,0 +1,68 @@
+﻿@page "/orders"
+@inject IOrderService OrderService
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
+
+<h3>Đơn hàng của bạn</h3>
+
+@if (orders == null)
+{
+    <p>Đang tải đơn hàng...</p>
+}
+else if (!orders.Any())
+{
+    <p>Bạn chưa có đơn hàng nào.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Mã đơn</th>
+                <th>Ngày đặt</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in orders)
+            {
+                <tr>
+                    <td>@order.OrderId</td>
+                    <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                    <td>@order.TotalAmount.ToString("N0") đ</td>
+                    <td>@order.Status</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => ViewOrder(order.OrderId)">Chi tiết</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Order>? orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is not null && user.Identity.IsAuthenticated)
+        {
+            var customerId = user.FindFirst(c => c.Type.Contains("nameidentifier"))?.Value;
+            if (!string.IsNullOrEmpty(customerId))
+            {
+                orders = await OrderService.GetOrdersByCustomerIdAsync(customerId);
+            }
+        }
+    }
+
+    private void ViewOrder(int orderId)
+    {
+        NavigationManager.NavigateTo($"/orders/{orderId}");
+    }
+}
