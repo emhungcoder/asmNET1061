@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using apiASM.Models;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace ASM.API.Controllers
@@ -16,13 +17,16 @@ namespace ASM.API.Controllers
     {
         private readonly ProductRepository _productRepository;
         private readonly IWebHostEnvironment _env;
-
-        public ProductsController(ProductRepository productRepository, IWebHostEnvironment env)
+        private readonly ApplicationDbContext _context;
+        public ProductsController(ProductRepository productRepository, IWebHostEnvironment env, ApplicationDbContext context)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
             _env = env;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
+     
 
+     
         // Chuyển đổi đối tượng Product thành ProductDTO
         private ProductDTO MapToDTO(Product p) => new ProductDTO
         {
@@ -173,6 +177,23 @@ namespace ASM.API.Controllers
         }
 
 
+        [HttpGet("get-all")]
+        public IActionResult GetAllProduct()
+        {
+            var products = _context.Products
+                .Where(p => p.TinhTrang == "on") 
+                .Select(p => new
+                {
+                    p.ProductID,
+                    p.ProductName,
+                    p.Price,
+                    p.Image,
+                    p.Description
+                })
+                .ToList();
+
+            return Ok(products);
+        }
 
     }
 }
