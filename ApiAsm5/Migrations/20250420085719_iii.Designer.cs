@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace apiASM.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250419093630_int7")]
-    partial class int7
+    [Migration("20250420085719_iii")]
+    partial class iii
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -4,10 +4,8 @@ using ASM.Data;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using apiASM.Models;
 using Microsoft.EntityFrameworkCore;
-
 
 namespace ASM.API.Controllers
 {
@@ -18,16 +16,15 @@ namespace ASM.API.Controllers
         private readonly ProductRepository _productRepository;
         private readonly IWebHostEnvironment _env;
         private readonly ApplicationDbContext _context;
+
         public ProductsController(ProductRepository productRepository, IWebHostEnvironment env, ApplicationDbContext context)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
             _env = env;
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
-     
 
-     
-        // Chuyển đổi đối tượng Product thành ProductDTO
+        // DTO Mapping
         private ProductDTO MapToDTO(Product p) => new ProductDTO
         {
             ProductID = p.ProductID,
@@ -61,7 +58,6 @@ namespace ASM.API.Controllers
             return Ok(result);
         }
 
-
         // Tìm kiếm sản phẩm
         [HttpGet("Search")]
         public async Task<IActionResult> SearchProducts(string? searchTerm, int? categoryId, decimal? minPrice, decimal? maxPrice)
@@ -78,6 +74,32 @@ namespace ASM.API.Controllers
             var product = await _productRepository.GetProductByIdAsync(id);
             if (product == null) return NotFound("Sản phẩm không tồn tại.");
             return Ok(MapToDTO(product));
+        }
+
+        // Lấy sản phẩm theo danh mục
+        [HttpGet("bycategory/{categoryId}")]
+        public async Task<IActionResult> GetProductsByCategory(int categoryId)
+        {
+            var products = await _context.Products
+                .Where(p => p.CategoryID == categoryId && p.TinhTrang == "On")
+                .Include(p => p.Category)
+                .Select(p => new ProductDTO
+                {
+                    ProductID = p.ProductID,
+                    ProductName = p.ProductName,
+                    Price = p.Price,
+                    Quantity = p.Quantity,
+                    Color = p.Color,
+                    Size = p.Size,
+                    Description = p.Description,
+                    Image = p.Image,
+                    CategoryID = p.CategoryID,
+                    CategoryName = p.Category.CategoryName,
+                    TinhTrang = p.TinhTrang
+                })
+                .ToListAsync();
+
+            return Ok(products);
         }
 
         // Thêm sản phẩm
@@ -111,7 +133,7 @@ namespace ASM.API.Controllers
                 Size = model.Size,
                 Description = model.Description,
                 Image = "/images/" + fileName,
-                TinhTrang = "On", // Trạng thái mặc định là đang bán
+                TinhTrang = "On",
                 CategoryID = model.CategoryID
             };
 
@@ -149,6 +171,7 @@ namespace ASM.API.Controllers
             return Ok(new { message = "Cập nhật sản phẩm thành công!" });
         }
 
+        // Ngừng bán sản phẩm
         [HttpPost("stop/{id}")]
         public async Task<IActionResult> StopSelling(int id)
         {
@@ -176,12 +199,12 @@ namespace ASM.API.Controllers
             return Ok(new { message = "Sản phẩm đã được kích hoạt lại!" });
         }
 
-
+        // API lấy tất cả sản phẩm đang bán (không cần quá chi tiết)
         [HttpGet("get-all")]
         public IActionResult GetAllProduct()
         {
             var products = _context.Products
-                .Where(p => p.TinhTrang == "on") 
+                .Where(p => p.TinhTrang == "On")
                 .Select(p => new
                 {
                     p.ProductID,
@@ -194,6 +217,5 @@ namespace ASM.API.Controllers
 
             return Ok(products);
         }
-
     }
 }

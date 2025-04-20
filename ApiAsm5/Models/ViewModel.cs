@@ -73,6 +73,12 @@ namespace ASM.Models
         public string PhoneNumber { get; set; }
 
     }
+    [NotMapped]
+    public class CategoryDto
+    {
+        public int CategoryID { get; set; }
+        public string CategoryName { get; set; }
+    }
 
 
 }

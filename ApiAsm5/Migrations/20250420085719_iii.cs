@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace ApiAsm5.Migrations
+namespace apiASM.Migrations
 {
     /// <inheritdoc />
-    public partial class ProductRazorMigration : Migration
+    public partial class iii : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
