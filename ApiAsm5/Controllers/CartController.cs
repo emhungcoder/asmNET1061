@@ -3,9 +3,11 @@ using ASM.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using apiASM.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ASM.API.Controllers
 {
+    [Authorize(Roles = "Customer")] 
     [Route("api/[controller]")]
     [ApiController]
     public class CartController : ControllerBase
@@ -16,8 +18,6 @@ namespace ASM.API.Controllers
             _context = context;
         }
 
-
-        // Thêm sản phẩm vào giỏ hàng
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart([FromBody] AddCartDto dto)
         {
@@ -60,7 +60,6 @@ namespace ASM.API.Controllers
             public int Quantity { get; set; }
         }
 
-        // Lấy giỏ hàng của người dùng (dựa vào customerId)
         [HttpGet("get")]
         public IActionResult GetCart([FromQuery] string customerId)
         {
@@ -75,7 +74,6 @@ namespace ASM.API.Controllers
             return Ok(cart.CartDetails.ToList());
         }
 
-        // Thanh toán giỏ hàng
         [HttpPost("checkout")]
         public IActionResult Checkout([FromForm] string customerId)
         {
@@ -126,7 +124,6 @@ namespace ASM.API.Controllers
             }
         }
 
-        // Xóa một sản phẩm khỏi giỏ hàng
         [HttpPost("remove")]
         public IActionResult RemoveFromCart([FromForm] int id)
         {
@@ -139,7 +136,6 @@ namespace ASM.API.Controllers
             return Ok(new { message = "Xóa thành công" });
         }
 
-        // Cập nhật số lượng sản phẩm trong giỏ hàng (JSON)
         [HttpPost("updatequantity")]
         public IActionResult UpdateQuantity([FromBody] UpdateCartDetailModel model)
         {

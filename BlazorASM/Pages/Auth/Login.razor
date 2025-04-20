@@ -1,6 +1,8 @@
 ﻿@page "/login"
+@using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
 @inject AuthService AuthService
-
+@inject ILocalStorageService LocalStorage
 @inject NavigationManager Navigation
 
 <h3>Đăng nhập</h3>
@@ -29,13 +31,33 @@
         bool success = await AuthService.LoginAsync(loginModel);
         if (success)
         {
+            var token = await LocalStorage.GetItemAsync<string>("authToken");
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            var role = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+
+            if (role == "Customer")
+            {
+                Navigation.NavigateTo("/customer/products");
+            }
+            else if (role == "Manager" || role == "Employee")
+            {
+                Navigation.NavigateTo("/productManeger");
+            }
+            else
+            {
+                // Trường hợp không xác định role
+                Navigation.NavigateTo("/");
+            }
+
             message = "Đăng nhập thành công!";
-            Navigation.NavigateTo("/products"); 
         }
         else
         {
             message = "Đăng nhập thất bại!";
         }
     }
+
 
 }

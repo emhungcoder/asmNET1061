@@ -37,7 +37,7 @@ else
                     <td>
                         @if (!string.IsNullOrEmpty(item?.Product?.Image))
                         {
-                            <img src="@item.Product.Image" width="100" />
+                            <img src=@($"https://localhost:7032/{item.Product.Image}") width="100" />
                         }
                         else
                         {
