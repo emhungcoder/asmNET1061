@@ -1,0 +1,115 @@
+﻿@page "/categories"
+@inject ICategoryService CategoryService
+@inject NavigationManager Navigation
+
+<h3>Danh sách Danh Mục</h3>
+
+<!-- Form thêm hoặc sửa danh mục -->
+<EditForm Model="@editingCategory" OnValidSubmit="HandleValidSubmit">
+    <div class="mb-3 d-flex">
+        <InputText @bind-Value="editingCategory.CategoryName" class="form-control me-2" placeholder="Tên danh mục" />
+        <button class="btn btn-success me-2" type="submit">@((editingCategory.CategoryID == 0) ? "Thêm" : "Cập nhật")</button>
+        @if (editingCategory.CategoryID != 0)
+        {
+            <button class="btn btn-secondary" @onclick="CancelEdit">Huỷ</button>
+        }
+    </div>
+</EditForm>
+
+@if (categories == null)
+{
+    <p>Đang tải...</p>
+}
+else if (!categories.Any())
+{
+    <p>Không có danh mục nào.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Tên danh mục</th>
+                <th style="width: 200px;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in categories)
+            {
+                <tr>
+                    <td>
+                        <a @onclick="() => NavigateToProducts(category.CategoryID)" style="cursor:pointer">
+                            @category.CategoryName
+                        </a>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary me-2" @onclick="() => EditCategory(category)">Sửa</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteCategory(category.CategoryID)">Xoá</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Category>? categories;
+    private Category editingCategory = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategories();
+    }
+
+    private async Task LoadCategories()
+    {
+        categories = await CategoryService.GetAllAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (editingCategory.CategoryID == 0)
+        {
+            await CategoryService.AddAsync(editingCategory);
+        }
+        else
+        {
+            await CategoryService.UpdateAsync(editingCategory.CategoryID, editingCategory);
+        }
+
+        editingCategory = new(); // Reset form
+        await LoadCategories(); // Reload danh sách
+    }
+
+    private void EditCategory(Category category)
+    {
+        editingCategory = new Category
+            {
+                CategoryID = category.CategoryID,
+                CategoryName = category.CategoryName
+            };
+    }
+
+    private void CancelEdit()
+    {
+        editingCategory = new();
+    }
+
+    private async Task DeleteCategory(int id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xoá?");
+        if (confirm)
+        {
+            await CategoryService.DeleteAsync(id);
+            await LoadCategories();
+        }
+    }
+
+    private void NavigateToProducts(int categoryId)
+    {
+        Navigation.NavigateTo($"/customer/products?categoryId={categoryId}");
+    }
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+}

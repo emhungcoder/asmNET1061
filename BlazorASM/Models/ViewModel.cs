@@ -87,7 +87,7 @@ namespace ASM.Client.Models
 public class EmployeeDto
 {
     public string? Id { get; set; }
-    public required string FullName { get; set; }
+    public string FullName { get; set; }
     public string Email { get; set; }
     public List<string>? Roles { get; set; }
     public string? TinhTrangHoatDong { get; set; }

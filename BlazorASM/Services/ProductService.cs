@@ -36,26 +36,27 @@ namespace ASM.Client.Services
             response.EnsureSuccessStatusCode();
         }
 
-
         public async Task UpdateAsync(Product product, MultipartFormDataContent formData)
         {
-            var content = new MultipartFormDataContent();
-            content.Add(new StringContent(product.ProductName), "ProductName");
-            content.Add(new StringContent(product.Price.ToString()), "Price");
-            content.Add(new StringContent(product.Quantity.ToString()), "Quantity");
-            content.Add(new StringContent(product.Color), "Color");
-            content.Add(new StringContent(product.Size), "Size");
-            content.Add(new StringContent(product.Description), "Description");
-            content.Add(new StringContent(product.CategoryID.ToString()), "CategoryID");
-
-            if (formData != null)
+            // Nếu không có formData (không cập nhật ảnh), thì vẫn tạo content từ product
+            if (formData == null)
             {
-                content.Add(formData, "ProductImage", formData.Headers.ContentDisposition.FileName);
+                formData = new MultipartFormDataContent();
             }
 
-            var response = await _httpClient.PutAsync("api/products", content);
+            formData.Add(new StringContent(product.ProductName ?? ""), "ProductName");
+            formData.Add(new StringContent(product.Price.ToString()), "Price");
+            formData.Add(new StringContent(product.Quantity.ToString()), "Quantity");
+            formData.Add(new StringContent(product.Color ?? ""), "Color");
+            formData.Add(new StringContent(product.Size ?? ""), "Size");
+            formData.Add(new StringContent(product.Description ?? ""), "Description");
+            formData.Add(new StringContent(product.CategoryID.ToString()), "CategoryID");
+            formData.Add(new StringContent(product.ProductID.ToString()), "ProductID"); // Cần thiết để biết cập nhật sản phẩm nào
+
+            var response = await _httpClient.PutAsync("api/products", formData);
             response.EnsureSuccessStatusCode();
         }
+
 
         public async Task StopSellingAsync(int id)
         {

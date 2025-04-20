@@ -1,0 +1,166 @@
+﻿@page "/admin/employees"
+@using ASM.Client.Models
+@using ASM.Client.Service
+@inject EmployeeService EmployeeService
+
+<h3 class="mb-3">📋 Danh sách nhân viên</h3>
+
+@if (employees == null)
+{
+    <p>Đang tải dữ liệu...</p>
+}
+else if (employees.Count == 0)
+{
+    <p>Không có nhân viên nào.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Điện thoại</th>
+                <th>Địa chỉ</th>
+                <th>Vai trò</th>
+                <th>Tình trạng</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var emp in employees)
+            {
+                <tr>
+                    <td>@emp.FullName</td>
+                    <td>@emp.Email</td>
+                    <td>@emp.PhoneNumber</td>
+                    <td>@emp.Address</td>
+                    <td>
+                        <select class="form-select form-select-sm w-auto d-inline"
+                                @onchange="async e => await UpdateRole(emp.Id, e.Value?.ToString())">
+                            @foreach (var role in roleOptions)
+                            {
+                                <option value="@role" selected="@emp.Roles.Contains(role)">
+                                    @role
+                                </option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <span class="fw-bold @(emp.TinhTrangHoatDong == "On" ? "text-success" : "text-danger")">
+                            @emp.TinhTrangHoatDong
+                        </span>
+                    </td>
+                    <td>
+                        @if (emp.TinhTrangHoatDong == "On")
+                        {
+                            <button class="btn btn-sm btn-secondary me-1" @onclick="() => Deactivate(emp.Id)">Ngừng</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-success me-1" @onclick="() => Activate(emp.Id)">Kích hoạt</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<hr />
+
+<h4 class="mt-4">➕ Thêm nhân viên mới</h4>
+
+<EditForm Model="newEmployee" OnValidSubmit="HandleAddEmployee">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-2">
+        <label>Họ tên:</label>
+        <InputText class="form-control" @bind-Value="newEmployee.FullName" />
+    </div>
+    <div class="mb-2">
+        <label>Email:</label>
+        <InputText class="form-control" @bind-Value="newEmployee.Email" />
+    </div>
+    <div class="mb-2">
+        <label>Điện thoại:</label>
+        <InputText class="form-control" @bind-Value="newEmployee.PhoneNumber" />
+    </div>
+    <div class="mb-2">
+        <label>Địa chỉ:</label>
+        <InputText class="form-control" @bind-Value="newEmployee.Address" />
+    </div>
+    <div class="mb-2">
+        <label>Mật khẩu:</label>
+        <InputText class="form-control" type="password" @bind-Value="password" />
+    </div>
+    <button type="submit" class="btn btn-primary">Thêm nhân viên</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+        @message
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@code {
+    private List<EmployeeDto> employees = new();
+    private EmployeeDto newEmployee = new() { FullName = "" };
+    private string password = "";
+    private string message = "";
+    private List<string> roleOptions = new() { "Employee", "Manager" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEmployees();
+    }
+
+    private async Task LoadEmployees()
+    {
+        var allEmployees = await EmployeeService.GetAllEmployeesAsync();
+        employees = allEmployees.Where(e => !e.Roles.Contains("Manager") && !e.Roles.Contains("Customer")).ToList();
+    }
+
+    private async Task HandleAddEmployee()
+    {
+        var result = await EmployeeService.AddEmployeeAsync(newEmployee, password);
+        if (result)
+        {
+            message = "✅ Thêm nhân viên thành công!";
+            newEmployee = new() { FullName = "" };
+            password = "";
+            await LoadEmployees();
+        }
+        else
+        {
+            message = "❌ Thêm nhân viên thất bại. Kiểm tra dữ liệu!";
+        }
+    }
+
+    private async Task Deactivate(string userId)
+    {
+        var result = await EmployeeService.DeactivateAsync(userId);
+        message = result ? "🔒 Đã ngừng hoạt động!" : "❌ Không thể ngừng hoạt động!";
+        if (result) await LoadEmployees();
+    }
+
+    private async Task Activate(string userId)
+    {
+        var result = await EmployeeService.ActivateAsync(userId);
+        message = result ? "🔓 Đã kích hoạt lại!" : "❌ Kích hoạt thất bại!";
+        if (result) await LoadEmployees();
+    }
+
+    private async Task UpdateRole(string userId, string? newRole)
+    {
+        if (!string.IsNullOrWhiteSpace(newRole))
+        {
+            var result = await EmployeeService.UpdateRoleAsync(userId, newRole);
+            message = result ? $"✅ Vai trò đã đổi thành {newRole}" : "❌ Không thể cập nhật vai trò!";
+            if (result) await LoadEmployees();
+        }
+    }
+}
