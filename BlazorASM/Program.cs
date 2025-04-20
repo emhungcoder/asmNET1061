@@ -21,6 +21,8 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<EmployeeService>();
 
 
+builder.Services.AddScoped<CartService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddBlazoredLocalStorage();
 
 await builder.Build().RunAsync();

@@ -30,22 +30,22 @@ namespace ASM5.API.Controllers
         }
 
         // Endpoint trả về chi tiết đơn hàng theo id
-        [HttpGet("{id}")]
-        public IActionResult GetOrderDetails(int id)
-        {
-            var order = _context.Orders
-                .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.Product)
-                .Include(o => o.Customer)
-                .FirstOrDefault(o => o.OrderId == id);
+        //[HttpGet("{id}")]
+        //public IActionResult GetOrderDetails(int id)
+        //{
+        //    var order = _context.Orders
+        //        .Include(o => o.OrderDetails)
+        //            .ThenInclude(od => od.Product)
+        //        .Include(o => o.Customer)
+        //        .FirstOrDefault(o => o.OrderId == id);
 
-            if (order == null)
-            {
-                return NotFound(new { message = "Không tìm thấy đơn hàng." });
-            }
+        //    if (order == null)
+        //    {
+        //        return NotFound(new { message = "Không tìm thấy đơn hàng." });
+        //    }
 
-            return Ok(order);
-        }
+        //    return Ok(order);
+        //}
 
         // Lấy danh sách đơn hàng (có thể lọc theo trạng thái và tìm kiếm)
         [HttpGet("orders")]
