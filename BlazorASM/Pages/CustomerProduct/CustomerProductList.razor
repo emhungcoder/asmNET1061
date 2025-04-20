@@ -67,7 +67,23 @@
         <!-- Phân trang -->
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center mt-4">
-                <!-- Pagination logic -->
+                @if (totalPages > 1)
+                {
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(currentPage - 1)">«</button>
+                    </li>
+
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(i)">@i</button>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => GoToPage(currentPage + 1)">»</button>
+                    </li>
+                }
             </ul>
         </nav>
     }
@@ -78,13 +94,12 @@
     <p>&copy; 2025 BlazorASM. Tất cả quyền được bảo lưu.</p>
 </footer>
 
-<!-- Code section -->
 @code {
     List<ProductDto> products = new();
     List<ProductDto> pagedProducts = new();
 
     int currentPage = 1;
-    int pageSize = 4;
+    int pageSize = 8;
     int totalPages = 1;
 
     private bool collapseNavMenu = true;
