@@ -1,0 +1,59 @@
+﻿@page "/order-history"
+@using System.Security.Claims
+@using System.Net.Http.Headers
+@using System.IdentityModel.Tokens.Jwt
+@inject HttpClient Http
+@inject ILocalStorageService LocalStorage
+
+<h3>Lịch sử đơn hàng</h3>
+
+@if (orders == null)
+{
+    <p>Đang tải dữ liệu...</p>
+}
+else if (orders.Count == 0)
+{
+    <p>Bạn chưa có đơn hàng nào.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Mã đơn hàng</th>
+                <th>Ngày đặt</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Chi tiết</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in orders)
+            {
+                <tr>
+                    <td>@order.OrderId</td>
+                    <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                    <td>@order.TotalAmount.ToString("N0") VNĐ</td>
+                    <td>@order.Status</td>
+                    <td>
+                        <a href="/order-details/@order.OrderId" class="btn btn-primary">Xem</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    List<OrderDto> orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await LocalStorage.GetItemAsync<string>("authToken");
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        var customerId = jwt.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        orders = await Http.GetFromJsonAsync<List<OrderDto>>($"api/OrderManager/bycustomer?customerId={customerId}");
+    }
+}

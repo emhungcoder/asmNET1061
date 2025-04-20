@@ -12,7 +12,7 @@
 else
 {
     <div class="card" style="width: 30rem;">
-        <img src="@product.Image" class="card-img-top" alt="Ảnh sản phẩm">
+        <img src="@($"https://localhost:7032/{product.Image}")" width="100" />
         <div class="card-body">
             <h5 class="card-title">@product.ProductName</h5>
             <p class="card-text"><strong>Giá:</strong> @product.Price.ToString("N0") đ</p>

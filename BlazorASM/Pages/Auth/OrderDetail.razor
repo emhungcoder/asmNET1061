@@ -1,0 +1,58 @@
+﻿@page "/order-details/{id:int}"
+@inject HttpClient Http
+@inject ILocalStorageService LocalStorage
+@using System.Globalization
+@using System.Net.Http.Headers
+
+<h3>Chi tiết đơn hàng</h3>
+
+@if (order == null)
+{
+    <p>Đang tải...</p>
+}
+else
+{
+    <p><strong>Mã đơn hàng:</strong> @order.OrderId</p>
+    <p><strong>Ngày đặt:</strong> @order.OrderDate.ToString("dd/MM/yyyy")</p>
+    <p><strong>Trạng thái:</strong> @order.Status</p>
+    <p><strong>Tổng cộng:</strong> @order.TotalAmount.ToString("N0") VNĐ</p>
+
+    <h4>Sản phẩm:</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tên sản phẩm</th>
+                <th>Giá</th>
+                <th>Số lượng</th>
+                <th>Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in order.OrderDetails)
+            {
+                <tr>
+                    <td>@d.Product.ProductName</td>
+                    <td>@d.UnitPrice.ToString("N0") VNĐ</td>
+                    <td>@d.Quantity</td>
+                    <td>@(d.Quantity * d.UnitPrice).ToString("N0") VNĐ</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a href="/order-history" class="btn btn-success">Quay lại lịch sử</a>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    OrderDto order;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await LocalStorage.GetItemAsync<string>("authToken");
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        order = await Http.GetFromJsonAsync<OrderDto>($"api/OrderManager/{id}");
+    }
+}

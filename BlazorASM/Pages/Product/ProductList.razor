@@ -31,7 +31,7 @@ else
                     <td>@p.Price.ToString("N0") đ</td>
                     <td>@p.Quantity</td>
                     <td>
-                        <img src="@p.Image" width="100" />
+                        <img src="@($"https://localhost:7032/{p.Image}")" width="100" />
                     </td>
                     <td>@p.TinhTrang</td>
                     <td>
@@ -64,7 +64,8 @@ else
                     <td>@p.Price.ToString("N0") đ</td>
                     <td>@p.Quantity</td>
                     <td>
-                        <img src="@p.Image" width="100" />
+                        <img src="@($"https://localhost:7032/{p.Image}")" width="100" />
+
                     </td>
                     <td>@p.TinhTrang</td>
                     <td>

@@ -16,7 +16,7 @@ else
         @foreach (var product in products)
         {
             <div class="product-card">
-                <img src="@product.Image" alt="@product.ProductName" width="150" />
+                <img src="@($"https://localhost:7032/{product.Image}")" alt="@product.ProductName" width="150" />
                 <h5>@product.ProductName</h5>
                 <p>@product.Price.ToString("N0") VNĐ</p>
                 <button @onclick="() => AddToCart(product.ProductID)">🛒 Thêm vào giỏ</button>
