@@ -14,50 +14,46 @@ namespace ASM.API.Controllers
         {
             _context = context;
         }
-
-        // Thêm sản phẩm vào giỏ hàng
         [HttpPost("add")]
-        public IActionResult AddToCart([FromForm] int productId, [FromForm] int quantity, [FromForm] string customerId)
+        public async Task<IActionResult> AddToCart([FromBody] AddCartDto dto)
         {
-            
-            // Ở API, bạn có thể xác thực bằng token (ở đây demo đơn giản)
-            // Nếu chưa có giỏ hàng, tạo mới
-            var cart = _context.Carts.FirstOrDefault(c => c.CustomerId == customerId);
+            var cart = await _context.Carts
+                .Include(c => c.CartDetails)
+                .FirstOrDefaultAsync(c => c.CustomerId == dto.CustomerId);
+
             if (cart == null)
             {
-                cart = new Cart
-                {
-                    CustomerId = customerId,
-                    CreatedDate = DateTime.Now
-                };
+                cart = new Cart { CustomerId = dto.CustomerId };
                 _context.Carts.Add(cart);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
 
-            // Kiểm tra sản phẩm đã có trong giỏ chưa
-            var cartDetail = _context.CartDetails.FirstOrDefault(cd => cd.CartId == cart.CartId && cd.ProductId == productId);
-            if (cartDetail != null)
+            var existingItem = cart.CartDetails.FirstOrDefault(cd => cd.ProductId == dto.ProductId);
+
+            if (existingItem != null)
             {
-                cartDetail.Quantity += quantity;
+                existingItem.Quantity += dto.Quantity;
             }
             else
             {
-                var product = _context.Products.FirstOrDefault(p => p.ProductID == productId);
-                if (product == null)
+                var product = await _context.Products.FindAsync(dto.ProductId);
+                cart.CartDetails.Add(new CartDetail
                 {
-                    return BadRequest("Sản phẩm không tồn tại.");
-                }
-                cartDetail = new CartDetail
-                {
-                    CartId = cart.CartId,
-                    Quantity = quantity,
-                    ProductId = productId,
+                    ProductId = dto.ProductId,
+                    Quantity = dto.Quantity,
                     UnitPrice = product.Price
-                };
-                _context.CartDetails.Add(cartDetail);
+                });
             }
-            _context.SaveChanges();
-            return Ok(new { message = "Đã thêm vào giỏ hàng." });
+
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        public class AddCartDto
+        {
+            public string CustomerId { get; set; }
+            public int ProductId { get; set; }
+            public int Quantity { get; set; }
         }
 
         // Lấy giỏ hàng của người dùng (dựa vào customerId)
