@@ -18,6 +18,8 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICustomerProductService, CustomerProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<EmployeeService>();
+
 
 builder.Services.AddBlazoredLocalStorage();
 
