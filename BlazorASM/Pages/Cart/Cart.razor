@@ -1,0 +1,147 @@
+﻿@page "/cart"
+@inject HttpClient Http
+@inject ILocalStorageService LocalStorage
+@inject CartService CartService
+@inject IJSRuntime JS
+@inject CartService CartService
+@using System.Net.Http.Headers
+@using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
+
+<h3 class="mb-3">🛒 Giỏ hàng của bạn</h3>
+
+@if (cartItems == null)
+{
+    <p>Đang tải giỏ hàng...</p>
+}
+else if (cartItems.Count == 0)
+{
+    <p>Không có sản phẩm trong giỏ hàng.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Hình ảnh</th>
+                <th>Sản phẩm</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in cartItems)
+            {
+                <tr>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item?.Product?.Image))
+                        {
+                            <img src="@item.Product.Image" width="100" />
+                        }
+                        else
+                        {
+                            <span>Không có hình</span>
+                        }
+                    </td>
+                    <td>@item?.Product?.ProductName</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.UnitPrice.ToString("N0") ₫</td>
+                    <td>@(item.Quantity * item.UnitPrice).ToString("N0") ₫</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => RemoveItem(item.CartDetailId)">Xóa</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="text-end fw-bold">Tổng cộng:</td>
+                <td class="fw-bold">@TotalAmount.ToString("N0") ₫</td>
+            </tr>
+        </tfoot>
+        <button class="btn btn-success mt-3" @onclick="Checkout">Thanh toán</button>
+    </table>
+}
+
+@code {
+    List<CartDetailDto> cartItems = new();
+    decimal TotalAmount => cartItems.Sum(i => i.Quantity * i.UnitPrice);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await LocalStorage.GetItemAsync<string>("authToken");
+            if (string.IsNullOrEmpty(token))
+                return;
+
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var userId = ParseUserIdFromJwt(token);
+            var response = await Http.GetAsync($"api/cart/get?customerId={userId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<List<CartDetailDto>>();
+                cartItems = result ?? new List<CartDetailDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Lỗi load cart: " + ex.Message);
+        }
+    }
+
+    private async Task RemoveItem(int cartDetailId)
+    {
+        var success = await CartService.RemoveFromCartAsync(cartDetailId);
+        if (success)
+        {
+            cartItems = cartItems.Where(i => i.CartDetailId != cartDetailId).ToList();
+        }
+    }
+
+    private async Task Checkout()
+    {
+        var token = await LocalStorage.GetItemAsync<string>("authToken");
+        if (string.IsNullOrEmpty(token))
+            return;
+
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var customerId = ParseUserIdFromJwt(token);
+
+        var success = await CartService.CheckoutAsync(customerId);
+        if (success)
+        {
+            cartItems.Clear();
+            await JS.InvokeVoidAsync("alert", "Đặt hàng thành công!");
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "Có lỗi xảy ra khi thanh toán.");
+        }
+    }
+
+
+
+    string ParseUserIdFromJwt(string token)
+    {
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        return jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "";
+    }
+
+    public class CartDetailDto
+    {
+        public int CartDetailId { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public ProductDto? Product { get; set; }
+    }
+
+    public class ProductDto
+    {
+        public string ProductName { get; set; }
+        public string? Image { get; set; }
+    }
+}
