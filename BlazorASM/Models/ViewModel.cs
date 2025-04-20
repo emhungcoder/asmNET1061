@@ -4,6 +4,28 @@ using Microsoft.AspNetCore.Http;
 
 namespace ASM.Client.Models
 {
+    public class OrderDto
+    {
+        public int OrderId { get; set; }
+        public DateTime OrderDate { get; set; }
+        public decimal TotalAmount { get; set; }
+        public string Status { get; set; }
+        public List<OrderDetailDto> OrderDetails { get; set; }
+    }
+
+    public class OrderDetailDto
+    {
+        public int OrderDetailId { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public ProductDto Product { get; set; }
+    }
+
+    public class ProductDto
+    {
+        public string ProductName { get; set; }
+    }
+
     [NotMapped]
     public class ChangePasswordModel
     {

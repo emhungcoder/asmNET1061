@@ -1,9 +1,42 @@
 ﻿@page "/productManeger"
 @inject IProductService ProductService
+@inject ICategoryService CategoryService
 
 <h3>Danh sách sản phẩm</h3>
 
 <a class="btn btn-success mb-3" href="/products/create">➕ Thêm mới</a>
+
+<!-- Tìm kiếm và lọc -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <input class="form-control" placeholder="🔍 Tên sản phẩm..." @bind="searchTerm" />
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" @bind="selectedCategoryId">
+            <option value="">-- Tất cả danh mục --</option>
+            @foreach (var cat in categories)
+            {
+                <option value="@cat.CategoryID">@cat.CategoryName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <input class="form-control" type="number" placeholder="Giá từ" @bind="minPrice" />
+    </div>
+    <div class="col-md-2">
+        <input class="form-control" type="number" placeholder="Giá đến" @bind="maxPrice" />
+    </div>
+    <div class="col-md-2">
+        <select class="form-select" @bind="sortOrder">
+            <option value="asc">Sắp xếp: Tăng dần</option>
+            <option value="desc">Sắp xếp: Giảm dần</option>
+        </select>
+    </div>
+    <div class="col-md-2 d-flex">
+        <button class="btn btn-primary me-2" @onclick="ApplyFilter">Lọc</button>
+        <button class="btn btn-secondary" @onclick="ClearFilter">Xoá lọc</button>
+    </div>
+</div>
 
 @if (activeProducts == null || inactiveProducts == null)
 {
@@ -31,7 +64,7 @@ else
                     <td>@p.Price.ToString("N0") đ</td>
                     <td>@p.Quantity</td>
                     <td>
-                        <img src="@p.Image" width="100" />
+                        <img src="@($"https://localhost:7032/{p.Image}")" width="100" />
                     </td>
                     <td>@p.TinhTrang</td>
                     <td>
@@ -64,7 +97,7 @@ else
                     <td>@p.Price.ToString("N0") đ</td>
                     <td>@p.Quantity</td>
                     <td>
-                        <img src="@p.Image" width="100" />
+                        <img src="@($"https://localhost:7032/{p.Image}")" width="100" />
                     </td>
                     <td>@p.TinhTrang</td>
                     <td>
@@ -81,27 +114,58 @@ else
 @code {
     private List<Product>? activeProducts;
     private List<Product>? inactiveProducts;
+    private List<Category> categories = new();
+
+    private string? searchTerm;
+    private int? selectedCategoryId;
+    private decimal? minPrice;
+    private decimal? maxPrice;
+    private string sortOrder = "asc"; // Mặc định là "asc"
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadCategories();
         await LoadProducts();
+    }
+
+    private async Task LoadCategories()
+    {
+        categories = await CategoryService.GetAllAsync();
     }
 
     private async Task LoadProducts()
     {
-        activeProducts = await ProductService.GetAllAsync(); // Lấy sản phẩm đang bán
-        inactiveProducts = await ProductService.GetInactiveProductsAsync(); // Lấy sản phẩm ngừng bán
+        // Lấy danh sách sản phẩm đang bán có lọc
+        activeProducts = await ProductService.SearchAsync(searchTerm, selectedCategoryId, minPrice, maxPrice, sortOrder);
+
+        // Lấy danh sách sản phẩm đã ngừng bán (không lọc)
+        inactiveProducts = await ProductService.GetInactiveProductsAsync();
+    }
+
+    private async Task ApplyFilter()
+    {
+        await LoadProducts();
+    }
+
+    private async Task ClearFilter()
+    {
+        searchTerm = null;
+        selectedCategoryId = null;
+        minPrice = null;
+        maxPrice = null;
+        sortOrder = "asc"; // Reset lại sortOrder
+        await LoadProducts();
     }
 
     private async Task Stop(int id)
     {
-        await ProductService.StopSellingAsync(id); // Gọi phương thức StopSellingAsync
-        await LoadProducts(); // Tải lại danh sách sản phẩm
+        await ProductService.StopSellingAsync(id);
+        await LoadProducts();
     }
 
     private async Task Activate(int id)
     {
-        await ProductService.ActivateAsync(id); // Gọi phương thức ActivateAsync
-        await LoadProducts(); // Tải lại danh sách sản phẩm
+        await ProductService.ActivateAsync(id);
+        await LoadProducts();
     }
 }

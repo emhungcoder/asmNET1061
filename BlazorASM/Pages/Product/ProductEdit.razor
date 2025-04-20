@@ -2,6 +2,7 @@
 @inject IProductService ProductService
 @inject ICategoryService CategoryService
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <h3>Sửa sản phẩm</h3>
 
@@ -12,41 +13,56 @@
 else
 {
     <EditForm Model="@product" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
         <div class="mb-3">
+            <label class="form-label">Tên sản phẩm</label>
             <InputText class="form-control" @bind-Value="product.ProductName" placeholder="Tên sản phẩm" />
+            <ValidationMessage For="@(() => product.ProductName)" />
         </div>
         <div class="mb-3">
+            <label class="form-label">Giá</label>
             <InputNumber class="form-control" @bind-Value="product.Price" placeholder="Giá" />
+            <ValidationMessage For="@(() => product.Price)" />
         </div>
         <div class="mb-3">
+            <label class="form-label">Số lượng</label>
             <InputNumber class="form-control" @bind-Value="product.Quantity" placeholder="Số lượng" />
+            <ValidationMessage For="@(() => product.Quantity)" />
         </div>
         <div class="mb-3">
+            <label class="form-label">Màu sắc</label>
             <InputText class="form-control" @bind-Value="product.Color" placeholder="Màu sắc" />
         </div>
         <div class="mb-3">
+            <label class="form-label">Kích thước</label>
             <InputText class="form-control" @bind-Value="product.Size" placeholder="Kích thước" />
         </div>
         <div class="mb-3">
-            <InputText class="form-control" @bind-Value="product.Description" placeholder="Mô tả" />
+            <label class="form-label">Mô tả</label>
+            <InputTextArea class="form-control" @bind-Value="product.Description" placeholder="Mô tả" />
         </div>
-
         <div class="mb-3">
-            <label>Danh mục</label>
+            <label class="form-label">Danh mục</label>
             <select class="form-control" @bind="product.CategoryID">
+                <option value="0" disabled>Chọn danh mục</option>
                 @foreach (var category in categories)
                 {
                     <option value="@category.CategoryID">@category.CategoryName</option>
                 }
             </select>
         </div>
-
         <div class="mb-3">
-            <InputFile OnChange="OnInputFileChange" />
+            <label class="form-label">Ảnh sản phẩm</label>
+            <InputFile OnChange="OnInputFileChange" class="form-control" />
         </div>
-
-        <button class="btn btn-primary">Lưu</button>
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <a href="/products" class="btn btn-secondary ms-2">Hủy</a>
     </EditForm>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert alert-info mt-3">@message</div>
+    }
 }
 
 @code {
@@ -54,11 +70,34 @@ else
     private Product? product;
     private IBrowserFile? file;
     private List<Category> categories = new();
+    private string? message;
 
     protected override async Task OnInitializedAsync()
     {
-        product = await ProductService.GetByIdAsync(id);
-        categories = await CategoryService.GetAllAsync();
+        try
+        {
+            // Lấy dữ liệu sản phẩm
+            product = await ProductService.GetByIdAsync(id);
+            if (product == null)
+            {
+                message = "Sản phẩm không tồn tại.";
+                await JS.InvokeVoidAsync("alert", message);
+                Nav.NavigateTo("/productManeger");
+                return;
+            }
+
+            // Lấy danh sách danh mục
+            categories = await CategoryService.GetAllAsync();
+
+            // Xóa các trường Color, Size, Description
+            product.Color = null;
+            product.Size = null;
+            product.Description = null;
+        }
+        catch (Exception ex)
+        {
+            message = $"Lỗi khi tải dữ liệu: {ex.Message}";
+        }
     }
 
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
@@ -70,22 +109,38 @@ else
     {
         if (product == null) return;
 
-        var formData = new MultipartFormDataContent();
-        formData.Add(new StringContent(product.ProductID.ToString()), "ProductID");
-        formData.Add(new StringContent(product.ProductName ?? ""), "ProductName");
-        formData.Add(new StringContent(product.Price.ToString()), "Price");
-        formData.Add(new StringContent(product.Quantity.ToString()), "Quantity");
-        formData.Add(new StringContent(product.Color ?? ""), "Color");
-        formData.Add(new StringContent(product.Size ?? ""), "Size");
-        formData.Add(new StringContent(product.Description ?? ""), "Description");
-        formData.Add(new StringContent(product.CategoryID.ToString()), "CategoryID");
-
-        if (file != null)
+        try
         {
-            formData.Add(new StreamContent(file.OpenReadStream()), "ProductImage", file.Name);
-        }
+            // Tạo form data
+            var formData = new MultipartFormDataContent();
+            formData.Add(new StringContent(product.ProductID.ToString()), "ProductID");
+            formData.Add(new StringContent(product.ProductName ?? ""), "ProductName");
+            formData.Add(new StringContent(product.Price.ToString()), "Price");
+            formData.Add(new StringContent(product.Quantity.ToString()), "Quantity");
+            formData.Add(new StringContent(product.Color ?? ""), "Color");
+            formData.Add(new StringContent(product.Size ?? ""), "Size");
+            formData.Add(new StringContent(product.Description ?? ""), "Description");
+            formData.Add(new StringContent(product.CategoryID.ToString()), "CategoryID");
 
-        await ProductService.UpdateAsync(product, formData);
-        Nav.NavigateTo("/products");
+            if (file != null)
+            {
+                formData.Add(new StreamContent(file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024)), "ProductImage", file.Name);
+            }
+
+            // Gửi yêu cầu cập nhật
+            await ProductService.UpdateAsync(product, formData);
+
+            // Hiển thị thông báo thành công
+            message = "Cập nhật sản phẩm thành công!";
+            await JS.InvokeVoidAsync("alert", message);
+
+            // Chuyển hướng về danh sách sản phẩm
+            Nav.NavigateTo("/productManeger");
+        }
+        catch (Exception ex)
+        {
+            message = $"Lỗi khi cập nhật sản phẩm: {ex.Message}";
+            await JS.InvokeVoidAsync("alert", message);
+        }
     }
 }

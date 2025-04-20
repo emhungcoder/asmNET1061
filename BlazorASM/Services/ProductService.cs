@@ -17,6 +17,11 @@ namespace ASM.Client.Services
             var response = await _httpClient.GetFromJsonAsync<List<Product>>("api/products/GetInactiveProducts");
             return response ?? new List<Product>();
         }
+        public async Task<List<Category>> GetCategoriesAsync()
+        {
+            var response = await _httpClient.GetFromJsonAsync<List<Category>>("api/categories");
+            return response ?? new List<Category>();
+        }
 
         public async Task<List<Product>> GetAllAsync()
         {
@@ -73,11 +78,25 @@ namespace ASM.Client.Services
 
 
 
-        public async Task<List<Product>> SearchAsync(string? searchTerm, int? categoryId, decimal? minPrice, decimal? maxPrice)
+        public async Task<List<Product>> SearchAsync(string? searchTerm, int? categoryId, decimal? minPrice, decimal? maxPrice, string? sortOrder)
         {
-            var queryString = $"?searchTerm={searchTerm}&categoryId={categoryId}&minPrice={minPrice}&maxPrice={maxPrice}";
-            var response = await _httpClient.GetFromJsonAsync<List<Product>>($"api/products/Search{queryString}");
+            var queryParams = new List<string>();
+            if (!string.IsNullOrWhiteSpace(searchTerm)) queryParams.Add($"searchTerm={searchTerm}");
+            if (categoryId.HasValue) queryParams.Add($"categoryId={categoryId}");
+            if (minPrice.HasValue) queryParams.Add($"minPrice={minPrice}");
+            if (maxPrice.HasValue) queryParams.Add($"maxPrice={maxPrice}");
+            if (!string.IsNullOrWhiteSpace(sortOrder)) queryParams.Add($"sortOrder={sortOrder}");
+
+            var url = "api/products/Search";
+            if (queryParams.Any())
+            {
+                url += "?" + string.Join("&", queryParams);
+            }
+
+            var response = await _httpClient.GetFromJsonAsync<List<Product>>(url);
             return response ?? new List<Product>();
         }
+
+
     }
 }

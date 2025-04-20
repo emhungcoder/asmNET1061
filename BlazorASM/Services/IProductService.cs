@@ -8,9 +8,10 @@ namespace ASM.Client.Services
         Task<Product?> GetByIdAsync(int id);
         Task AddAsync(Product product, MultipartFormDataContent formData);
         Task UpdateAsync(Product product, MultipartFormDataContent formData);
+        Task<List<Category>> GetCategoriesAsync();
 
         Task StopSellingAsync(int id);
         Task ActivateAsync(int id);
-        Task<List<Product>> SearchAsync(string? searchTerm, int? categoryId, decimal? minPrice, decimal? maxPrice);
+        Task<List<Product>> SearchAsync(string? searchTerm, int? categoryId, decimal? minPrice, decimal? maxPrice, string sortOrder);
     }
 }
