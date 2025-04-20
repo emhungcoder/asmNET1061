@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ApiAsm5.Migrations
+namespace apiASM.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250417153917_ProductRazorMigration")]
-    partial class ProductRazorMigration
+    [Migration("20250420101607_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

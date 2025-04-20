@@ -1,23 +1,50 @@
 ﻿@page "/products/edit/{id:int}"
 @inject IProductService ProductService
+@inject ICategoryService CategoryService
 @inject NavigationManager Nav
 
 <h3>Sửa sản phẩm</h3>
 
-@if (product == null)
+@if (product == null || categories == null)
 {
     <p>Đang tải...</p>
 }
 else
 {
     <EditForm Model="@product" OnValidSubmit="HandleValidSubmit">
-        <InputText class="form-control" @bind-Value="product.ProductName" />
-        <InputNumber class="form-control" @bind-Value="product.Price" />
-        <InputNumber class="form-control" @bind-Value="product.Quantity" />
-        <InputText class="form-control" @bind-Value="product.Color" />
-        <InputText class="form-control" @bind-Value="product.Size" />
-        <InputText class="form-control" @bind-Value="product.Description" />
-        <InputFile OnChange="OnInputFileChange" />
+        <div class="mb-3">
+            <InputText class="form-control" @bind-Value="product.ProductName" placeholder="Tên sản phẩm" />
+        </div>
+        <div class="mb-3">
+            <InputNumber class="form-control" @bind-Value="product.Price" placeholder="Giá" />
+        </div>
+        <div class="mb-3">
+            <InputNumber class="form-control" @bind-Value="product.Quantity" placeholder="Số lượng" />
+        </div>
+        <div class="mb-3">
+            <InputText class="form-control" @bind-Value="product.Color" placeholder="Màu sắc" />
+        </div>
+        <div class="mb-3">
+            <InputText class="form-control" @bind-Value="product.Size" placeholder="Kích thước" />
+        </div>
+        <div class="mb-3">
+            <InputText class="form-control" @bind-Value="product.Description" placeholder="Mô tả" />
+        </div>
+
+        <div class="mb-3">
+            <label>Danh mục</label>
+            <select class="form-control" @bind="product.CategoryID">
+                @foreach (var category in categories)
+                {
+                    <option value="@category.CategoryID">@category.CategoryName</option>
+                }
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <InputFile OnChange="OnInputFileChange" />
+        </div>
+
         <button class="btn btn-primary">Lưu</button>
     </EditForm>
 }
@@ -26,10 +53,12 @@ else
     [Parameter] public int id { get; set; }
     private Product? product;
     private IBrowserFile? file;
+    private List<Category> categories = new();
 
     protected override async Task OnInitializedAsync()
     {
         product = await ProductService.GetByIdAsync(id);
+        categories = await CategoryService.GetAllAsync();
     }
 
     private async Task OnInputFileChange(InputFileChangeEventArgs e)

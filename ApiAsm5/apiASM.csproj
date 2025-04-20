@@ -29,4 +29,8 @@
     <ProjectReference Include="..\BlazorASM\BlazorASM.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>

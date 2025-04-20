@@ -1,0 +1,167 @@
+﻿@page "/customer/products"
+@inject HttpClient Http
+@inject ILocalStorageService LocalStorage
+@using System.Net.Http.Headers
+@using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
+
+<!-- Navbar -->
+<div class="top-row ps-3 navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">BlazorASM</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<!-- Banner -->
+<div class="container-fluid mb-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="carousel slide" id="carouselExampleControls" data-bs-ride="carousel">
+                <!-- Carousel items here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sản phẩm -->
+<div class="container">
+    <h3 class="mb-4 text-primary">🛍 Danh sách sản phẩm</h3>
+
+    @if (pagedProducts == null || products == null)
+    {
+        <p>Đang tải sản phẩm...</p>
+    }
+    else if (products.Count == 0)
+    {
+        <p>Không có sản phẩm nào.</p>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var product in pagedProducts)
+            {
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        @if (!string.IsNullOrEmpty(product.Image))
+                        {
+                            <img src="@product.Image" class="card-img-top" style="height:200px; object-fit:cover" />
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light text-center" style="height:200px; line-height:200px;">Không có ảnh</div>
+                        }
+
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@product.ProductName</h5>
+                            <p class="card-text fw-bold">@product.Price.ToString("N0") ₫</p>
+                            <button class="btn btn-primary mt-auto w-100" @onclick="() => AddToCart(product.ProductID)">➕ Thêm vào giỏ</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Phân trang -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-4">
+                <!-- Pagination logic -->
+            </ul>
+        </nav>
+    }
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white text-center py-3 mt-5">
+    <p>&copy; 2025 BlazorASM. Tất cả quyền được bảo lưu.</p>
+</footer>
+
+<!-- Code section -->
+@code {
+    List<ProductDto> products = new();
+    List<ProductDto> pagedProducts = new();
+
+    int currentPage = 1;
+    int pageSize = 4;
+    int totalPages = 1;
+
+    private bool collapseNavMenu = true;
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private void ToggleNavMenu() => collapseNavMenu = !collapseNavMenu;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await LocalStorage.GetItemAsync<string>("authToken");
+            if (string.IsNullOrEmpty(token)) return;
+
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var result = await Http.GetFromJsonAsync<List<ProductDto>>("api/products");
+            products = result ?? new();
+            totalPages = (int)Math.Ceiling(products.Count / (double)pageSize);
+            UpdatePagedProducts();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Lỗi khi load danh sách sản phẩm: " + ex.Message);
+        }
+    }
+
+    void UpdatePagedProducts()
+    {
+        pagedProducts = products
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+    }
+
+    void GoToPage(int page)
+    {
+        if (page >= 1 && page <= totalPages)
+        {
+            currentPage = page;
+            UpdatePagedProducts();
+        }
+    }
+
+    async Task AddToCart(int productId)
+    {
+        var token = await LocalStorage.GetItemAsync<string>("authToken");
+        var customerId = ParseUserIdFromJwt(token);
+
+        var request = new
+        {
+            CustomerId = customerId,
+            ProductId = productId,
+            Quantity = 1
+        };
+
+        var response = await Http.PostAsJsonAsync("api/cart/add", request);
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Thêm vào giỏ hàng thành công");
+        }
+        else
+        {
+            Console.WriteLine("Thêm thất bại");
+        }
+    }
+
+    string ParseUserIdFromJwt(string token)
+    {
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        return jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "";
+    }
+
+    public class ProductDto
+    {
+        public int ProductID { get; set; }
+        public string ProductName { get; set; }
+        public decimal Price { get; set; }
+        public string? Image { get; set; }
+    }
+}
