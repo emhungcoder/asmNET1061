@@ -37,7 +37,7 @@ else
                     <td>
                         @if (!string.IsNullOrEmpty(item?.Product?.Image))
                         {
-                            <img src="@item.Product.Image" width="100" />
+                            <img src=@($"https://localhost:7032/{item.Product.Image}") width="100" />
                         }
                         else
                         {
@@ -45,9 +45,17 @@ else
                         }
                     </td>
                     <td>@item?.Product?.ProductName</td>
-                    <td>@item.Quantity</td>
-                    <td>@item.UnitPrice.ToString("N0") ₫</td>
-                    <td>@(item.Quantity * item.UnitPrice).ToString("N0") ₫</td>
+                    <td>
+                        <button @onclick="() => ChangeQuantity(item, -1)">-</button>
+                        <span class="mx-2">@item.Quantity</span>
+                        <button @onclick="() => ChangeQuantity(item, 1)">+</button>
+                    </td>
+                    <td>@item.UnitPrice.ToString("N2") ₫</td>
+                    @{
+                        var thanhTien = (item.Quantity * item.UnitPrice).ToString("N2");
+                    }
+                    <td>@thanhTien ₫</td>
+
                     <td>
                         <button class="btn btn-danger btn-sm" @onclick="() => RemoveItem(item.CartDetailId)">Xóa</button>
                     </td>
@@ -57,7 +65,7 @@ else
         <tfoot>
             <tr>
                 <td colspan="4" class="text-end fw-bold">Tổng cộng:</td>
-                <td class="fw-bold">@TotalAmount.ToString("N0") ₫</td>
+                <td class="fw-bold">@TotalAmount.ToString("N2") ₫</td>
             </tr>
         </tfoot>
         <button class="btn btn-success mt-3" @onclick="Checkout">Thanh toán</button>
@@ -66,7 +74,7 @@ else
 
 @code {
     List<CartDetailDto> cartItems = new();
-    decimal TotalAmount => cartItems.Sum(i => i.Quantity * i.UnitPrice);
+    decimal TotalAmount => cartItems.Sum(i => (i?.Quantity ?? 0) * (i?.UnitPrice ?? 0));
 
     protected override async Task OnInitializedAsync()
     {
@@ -123,7 +131,24 @@ else
         }
     }
 
+    private async Task ChangeQuantity(CartDetailDto item, int delta)
+    {
+        int newQuantity = item.Quantity + delta;
 
+        if (newQuantity < 1)
+            return; // Không cho giảm xuống 0
+
+        try
+        {
+            await  CartService.UpdateQuantityAsync(item.CartDetailId, newQuantity);
+            item.Quantity = newQuantity;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Lỗi khi cập nhật số lượng: " + ex.Message);
+        }
+    }
 
     string ParseUserIdFromJwt(string token)
     {
